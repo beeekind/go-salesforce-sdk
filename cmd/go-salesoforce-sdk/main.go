@@ -1,16 +1,12 @@
 package main
 
 import (
-	"bytes"
-	"compress/gzip"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"path/filepath"
+	"strconv"
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
-	"github.com/b3ntly/salesforce/client"
+	"github.com/b3ntly/salesforce"
 	"github.com/b3ntly/salesforce/codegen"
 	"github.com/b3ntly/salesforce/metadata"
 	"github.com/b3ntly/salesforce/requests"
@@ -18,20 +14,54 @@ import (
 	"github.com/b3ntly/salesforce/types"
 )
 
-var (
-	id            = os.Getenv("SALESFORCE_SDK_CLIENT_ID")
-	secret        = os.Getenv("SALESFORCE_SDK_CLIENT_SECRET")
-	username      = os.Getenv("SALESFORCE_SDK_USERNAME")
-	password      = os.Getenv("SALESFORCE_SDK_PASSWORD")
-	securityToken = os.Getenv("SALESFORCE_SDK_SECURITY_TOKEN")
-)
-
-var sender = client.Must()
-var req = requests.Base.Sender(sender)
 var objectDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
 var toolingDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_%s.htm"
+var invalidCommandText = "expected command 'ls' or 'generate {objectName}' run command with --help for more info"
 
-// warm the cache
+var helpText = `
+Welcome to the go-salesforce-sdk CLI!
+
+This CLI depends on the default authentication methods used by Salesforce.DefaultClient. 
+To function properly set the following environment variables:
+
+For the JWT flow (recommended):
+
+https://mannharleen.github.io/2020-03-03-salesforce-jwt/
+
+SALESFORCE_SDK_CLIENT_ID 
+SALESFORCE_SDK_USERNAME
+SALESFORCE_SDK_PEM_PATH
+
+For the Password Flow:
+
+SALESFORCE_SDK_CLIENT_ID
+SALESFORCE_SDK_CLIENT_SECRET
+SALESFORCE_SDK_USERNAME
+SALESFORCE_SDK_PASSWORD
+SALESFORCE_SDK_SECURITY_TOKEN
+
+There are currently two commands:
+
+---
+ls 
+---
+
+list salesforce objects for your org. Takes no arguments.
+
+---
+generate {objectName|string} {outputPath|string} {packageName|string} {relationshipLevel|int}
+---
+
+generate type definitions for the given salesforce object i.e. {Lead, User, Account}. 
+relationshipLevel denotes how many relations should be generated. Because salesforce objects
+are so deeply connected we suggest 0 or 1 for this value.
+
+Examples:
+
+go-salesforce-sdk ls 
+go-salesforce-sdk generate Lead ./ leads 0
+go-salesforce-sdk generate Account /path/to/desired/output accounts 1
+`
 
 func panicIfErr(err error) {
 	if err != nil {
@@ -40,17 +70,77 @@ func panicIfErr(err error) {
 }
 
 func main() {
-	println("hydrating...")
-	panicIfErr(hydrate())
-	println("hydrated...")
+	if len(os.Args) < 2 {
+		fmt.Println(invalidCommandText)
+	}
 
-	definer := &ObjectDefinition{Client: sender}
+	for _, arg := range os.Args {
+		switch arg {
+		case "help", "--help", "-help":
+			helpCommand()
+			return
+		}
+	}
+
+	switch os.Args[1] {
+	case "ls":
+		lsCommand()
+	case "generate":
+		generateCommand()
+	default:
+		fmt.Println(invalidCommandText)
+	}
+}
+
+func lsCommand() {
+	results, err := salesforce.SObjects()
+	if err != nil {
+		fmt.Printf("Error retrieving salesforce objects: %s\n", err.Error())
+		return
+	}
+
+	if len(results.Sobjects) == 0 {
+		fmt.Println("No Salesforce objects returned. Has salesforce.DefaultClient authenticated properly?")
+		return
+	}
+
+	for _, sobject := range results.Sobjects {
+		fmt.Println(sobject.Name)
+	}
+}
+
+func generateCommand() {
+	if len(os.Args) < 6 {
+		fmt.Printf("Too few arguments to 'generate' command expected 6 got %v - use --help for more", len(os.Args))
+		return
+	}
+
+	objectName := os.Args[2]
+	outputPath := os.Args[3]
+	outputPackageName := os.Args[4]
+	recursionLevel, err := strconv.Atoi(os.Args[5])
+	if err != nil {
+		fmt.Println("Generate expects its final argument to be an integer indicating how many levels of relations should be generated")
+		return 
+	}
+
+	definer := &ObjectDefinition{
+		Client:      salesforce.DefaultClient,
+		ObjectName:  objectName,
+		OutputPath:  outputPath,
+		PackageName: outputPackageName,
+		RecursionLevel: recursionLevel, 
+	}
 	seed, err := codegen.From(definer)
 
 	panicIfErr(err)
 
 	err = codegen.Generate(seed)
 	panicIfErr(err)
+}
+
+func helpCommand() {
+	fmt.Println(helpText)
 }
 
 func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error) {
@@ -114,7 +204,8 @@ func describe(objectName string, ignoreRelations bool) (codegen.Structs, error) 
 
 	var describe metadata.Describe
 	uri := fmt.Sprintf("%s/%s/%s", "sobjects", objectName, "describe")
-	_, err := req.
+	_, err := requests.
+		Sender(salesforce.DefaultClient).
 		URL(uri).
 		JSON(&describe)
 
@@ -154,7 +245,7 @@ func reference(entity *codegen.Struct) error {
 
 	documentationStruct, err := codegen.FromHTML(doc)
 	if err != nil {
-		println(6, entity.Name, err.Error())
+		println(entity.Name, err.Error())
 		return nil
 	}
 
@@ -182,7 +273,8 @@ func description(entity *codegen.Struct) error {
 		Where(soql.Eq{"QualifiedApiName": entity.Name})
 
 	var result entities
-	_, err := req.
+	_, err := requests.
+		Sender(salesforce.DefaultClient).
 		URL(fmt.Sprintf("%s/%s", "tooling", "query")).
 		SQLizer(builder).
 		JSON(&result)
@@ -198,45 +290,5 @@ func description(entity *codegen.Struct) error {
 	final := codegen.MergeDocumentation(*entity, codegen.Struct{Name: entity.Name, Documentation: result.Records[0].Description})
 	entity.Documentation = final.Documentation
 	descriptionCache.set(entity.Name, codegen.Structs{{Name: entity.Name, Documentation: result.Records[0].Description}})
-	return nil
-}
-
-func hydrate() error {
-	fp := "../../chromedp/all"
-	files, err := ioutil.ReadDir(fp)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-		contents, err := os.ReadFile(filepath.Join(fp, f.Name()))
-		if err != nil {
-			println(1, f.Name())
-			return err
-		}
-
-		reader, err := gzip.NewReader(bytes.NewBuffer(contents))
-		if err != nil {
-			println(2, f.Name())
-			return err
-		}
-
-		doc, err := goquery.NewDocumentFromReader(reader)
-		if err != nil {
-			println(3, f.Name())
-			return err
-		}
-
-		referenceStruct, err := codegen.FromHTML(doc)
-		if err != nil {
-			println(4, f.Name())
-			return err
-		}
-
-		parts := strings.Split(f.Name(), ".")
-		objectName := parts[0]
-		referenceCache.set(objectName, codegen.Structs{referenceStruct})
-	}
-
 	return nil
 }

@@ -40,6 +40,7 @@ var DefaultClient = client.Must(
 		),
 	),
 	client.WithPool(async.New(100, nil, ratelimit.New(5, time.Second*1, 10, memory.New()))),
+	client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),
 )
 
 /**
