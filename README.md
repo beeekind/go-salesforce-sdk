@@ -6,11 +6,25 @@ Checkout our [release notes](https://github.com/beeekind/go-salesforce-sdk/relea
 
 Jump To:
 
+* [Installation](https://github.com/beeekind/go-salesforce-sdk#Installation)
 * [Features](https://github.com/beeekind/go-salesforce-sdk#Features)
 * [Examples](https://github.com/beeekind/go-salesforce-sdk#Examples)
 * [Packages](https://github.com/beeekind/go-salesforce-sdk#Packages)
 * [Contribute](https://github.com/beeekind/go-salesforce-sdk#Contribute)
 * [Credits](https://github.com/beeekind/go-salesforce-sdk#Credits)
+
+# Installation 
+
+This SDK comes in two parts: a CLI for generating types and running small commands, and a series of Go packages intended to be used
+as a library in your applications.
+
+```bash
+# install the package using go modules
+go get github.com/beeekind/go-salesforce-sdk
+# install the CLI
+go install $GOPATH/src/github.com/beeekind/go-salesforce-sdk/cmd/go-salesforce-sdk
+
+```
 
 # Features 
 --- 
@@ -84,17 +98,76 @@ We recommend you actually use the low level API as it is much more configurable 
 
 Use these examples, all *_test.go files, the root package, and the godoc, as documentation for using this SDK.
 
+1. Authenticate via the Password or JWT flows by setting environmental variables:
+
+```bash
+# For the JWT flow (recommended):
+# https://mannharleen.github.io/2020-03-03-salesforce-jwt/
+
+export SALESFORCE_SDK_CLIENT_ID=...
+export SALESFORCE_SDK_USERNAME=...
+export SALESFORCE_SDK_PEM_PATH=...
+
+#For the Password Flow:
+
+export SALESFORCE_SDK_CLIENT_ID=...
+export SALESFORCE_SDK_CLIENT_SECRET=...
+export SALESFORCE_SDK_USERNAME=...
+export SALESFORCE_SDK_PASSWORD=...
+export SALESFORCE_SDK_SECURITY_TOKEN=...
+```
+
+2. Generate the types you intend to use
+
+```bash
+go-salesforce-sdk generate Lead ./ leads 0
+```
+
+3. Use the SDK 
+
+```golang
+import (
+    sdk "github.com/beeekind/go-salesforce-sdk"
+    "github.com/beeekind/go-salesforce-sdk/requests"
+    "github.com/beeekind/go-salesforce-sdk/soql"
+    "github.com/beeekind/go-salesforce-sdk/types"
+    "github.com/your/project/leads"
+)
+
+type LeadsResponse struct {
+    types.QueryResponse
+    Records []*leads.Lead `json:"records"`
+}
+
+func main(){
+    var response LeadsResponse
+    _, err := requests. 
+        Sender(sdk.DefaultClient).
+        URL("query").
+        SQLizer(soql.
+            Select("Id", "Name", "CreatedDate"). 
+            From("Lead"). 
+            Limit(100)).
+        JSON(&response)
+
+    for _, lead := range response.Records {
+        // ...
+    }
+}
+```
+
 # Packages 
 
 | Package            | Link | Description                                               | 
 | ------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | go-salesforce-sdk  | [Link](https://github.com/beeekind/go-salesforce-sdk)              | Root package with high level API methods. Other packages should be considered the low-level API |
+| cmd/go-salesforce-sdk | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/cmd/go-salesforce-sdk) | CLI for generating golang type definitions
 | apex               | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/apex)      | Demonstrates using the Execute Anonymous Apex endpoint to send an email                        | 
 | bulk               | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/bulk)      | Methods for bulk uploading and retrieving objects as text/csv                                  | 
 | client             | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/client)    | Wraps http.Client and provides authentication, ratelimiting, and http.Transport customization  | 
 | composite          | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/composite) | Provides Create, Read, Update, and Delete, operations with the Composite API  | 
 | internal           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/internal)  | Internal use only.  | 
-| metadata           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/metadata)  | Content Cell  | 
+| metadata           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/metadata)  | TBD  | 
 | requests           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/requests)  | HTTP request building using the builder design pattern  | 
 | soql               | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/soql)      | SOQL (Salesforce Object Query Language) building using the builder design pattern  |
 | templates          | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/templates) | Templates for generating Type definitions, Response types, Apex code, and other artifacts  | 
@@ -103,6 +176,10 @@ Use these examples, all *_test.go files, the root package, and the godoc, as doc
 
 # Contribute
 
+Issues and Pull Requests welcome!
 
+# Credits
 
-# Credits 
+Gophers Slack. 
+
+The greater Devops community for keeping me sane through COVID. 
