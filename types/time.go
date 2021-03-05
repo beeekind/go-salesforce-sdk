@@ -211,6 +211,6 @@ func (d *Datetime) UnmarshalText(data []byte) error {
 	return nil
 }
 
-func (d *Datetime) String() string {
+func (d Datetime) String() string {
 	return d.Value.Format(DefaultDatetimeFormats[0])
 }
