@@ -5,8 +5,8 @@ import (
 	"os"
 	"text/template"
 
-	"github.com/b3ntly/salesforce/client"
-	"github.com/b3ntly/salesforce/codegen"
+	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
 )
 
 // definition.go contains utility functions for generating salesforce type
@@ -56,9 +56,9 @@ func (o *ObjectDefinition) Options() ([]codegen.Option, error) {
 		codegen.WithPackageName(o.PackageName),
 		codegen.WithOutputDirectory(o.OutputPath),
 		codegen.WithTemplateMap(map[string]*template.Template{
-			"objects.go":   template.Must(template.New("objects.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/b3ntly/salesforce/templates/objects.gohtml")),
-			"relations.go": template.Must(template.New("objects.relations.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/b3ntly/salesforce/templates/objects.relations.gohtml")),
-			// "api.go": template.Must(template.New("objects.api.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(GOPATH + "/src/github.com/b3ntly/salesforce/templates/objects.api.gohtml")),
+			"objects.go":   template.Must(template.New("objects.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.gohtml")),
+			"relations.go": template.Must(template.New("objects.relations.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.relations.gohtml")),
+			// "api.go": template.Must(template.New("objects.api.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(GOPATH + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.api.gohtml")),
 		}),
 		codegen.WithData(o),
 	}, nil

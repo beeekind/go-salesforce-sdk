@@ -7,9 +7,9 @@ import (
 	"io"
 	"testing"
 
-	"github.com/b3ntly/salesforce/bulk"
-	"github.com/b3ntly/salesforce/client"
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/bulk"
+	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/stretchr/testify/require"
 )
 

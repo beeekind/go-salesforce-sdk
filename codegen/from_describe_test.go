@@ -4,8 +4,8 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/b3ntly/salesforce/codegen"
-	"github.com/b3ntly/salesforce/metadata"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
+	"github.com/beeekind/go-salesforce-sdk/metadata"
 	"github.com/stretchr/testify/require"
 )
 
@@ -71,7 +71,7 @@ func TestFromDescriptionSeed(t *testing.T) {
 			var subpackages []string
 			entityMap := map[string]interface{}{}
 			for _, entity := range result {
-				uncapturedVariable := entity 
+				uncapturedVariable := entity
 				subpackages = append(subpackages, entity.Name)
 				entityMap[entity.Name] = &uncapturedVariable
 			}

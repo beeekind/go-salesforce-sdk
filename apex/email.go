@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"text/template"
 
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 )
 
 const executeAnonymousEndpoint = "tooling/executeAnonymous"

@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/b3ntly/salesforce/internal/async"
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/dgrijalva/jwt-go"
 )
 

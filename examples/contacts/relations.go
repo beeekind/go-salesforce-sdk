@@ -5,7 +5,7 @@ package contacts
 import (
 	"encoding/json"
 
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 // AcceptedEventRelation ...

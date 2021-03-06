@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b3ntly/salesforce"
-	"github.com/b3ntly/salesforce/examples/entitydefinitions"
-	"github.com/b3ntly/salesforce/examples/leads"
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/soql"
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk"
+	"github.com/beeekind/go-salesforce-sdk/examples/entitydefinitions"
+	"github.com/beeekind/go-salesforce-sdk/examples/leads"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/soql"
+	"github.com/beeekind/go-salesforce-sdk/types"
 	"github.com/stretchr/testify/require"
 )
 

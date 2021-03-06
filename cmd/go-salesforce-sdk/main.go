@@ -6,12 +6,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/b3ntly/salesforce"
-	"github.com/b3ntly/salesforce/codegen"
-	"github.com/b3ntly/salesforce/metadata"
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/soql"
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
+	"github.com/beeekind/go-salesforce-sdk/metadata"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/soql"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 var objectDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
@@ -121,15 +121,15 @@ func generateCommand() {
 	recursionLevel, err := strconv.Atoi(os.Args[5])
 	if err != nil {
 		fmt.Println("Generate expects its final argument to be an integer indicating how many levels of relations should be generated")
-		return 
+		return
 	}
 
 	definer := &ObjectDefinition{
-		Client:      salesforce.DefaultClient,
-		ObjectName:  objectName,
-		OutputPath:  outputPath,
-		PackageName: outputPackageName,
-		RecursionLevel: recursionLevel, 
+		Client:         salesforce.DefaultClient,
+		ObjectName:     objectName,
+		OutputPath:     outputPath,
+		PackageName:    outputPackageName,
+		RecursionLevel: recursionLevel,
 	}
 	seed, err := codegen.From(definer)
 

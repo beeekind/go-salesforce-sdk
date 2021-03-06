@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 )
 
 const ingestEndpoint = "jobs/ingest"

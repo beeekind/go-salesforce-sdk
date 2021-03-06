@@ -13,7 +13,7 @@ type expr struct {
 
 // Expr represents a sql expression that is already fully formed 
 func Expr(sql string) SQLizer {
-	return expr{sql: escapeSingleQuote(sql)}
+	return expr{sql}
 }
 
 // ToSQL ... 
@@ -106,7 +106,7 @@ func (eq Eq) toSQL(useNotOperator bool) (sql string, err error) {
 
 		// 2: if val is nil return a "key is/is not NULL" clause
 		if val == nil {
-			expr = fmt.Sprintf("%s %s null", escapeSingleQuote(key), nullOpr)
+			expr = fmt.Sprintf("%s %s null", key, nullOpr)
 			exprs = append(exprs, expr)
 			continue 
 		} 
@@ -122,9 +122,9 @@ func (eq Eq) toSQL(useNotOperator bool) (sql string, err error) {
 				for i := 0; i < r.Len(); i++ {
 					v := reflect.ValueOf(r.Index(i).Interface())
 					if v.Kind() == reflect.String {
-						items = append(items, fmt.Sprintf("'%s'", escapeSingleQuote(r.Index(i).Interface().(string))))
+						items = append(items, fmt.Sprintf("'%s'", r.Index(i).Interface().(string)))
 					} else {
-						items = append(items, escapeSingleQuote(fmt.Sprintf("%v", r.Index(i))))
+						items = append(items, fmt.Sprintf("%v", r.Index(i)))
 					}
 				}
 				// append list notation
@@ -138,7 +138,7 @@ func (eq Eq) toSQL(useNotOperator bool) (sql string, err error) {
 		// 4: if val is a string escape any single quotes not at the beginning or end of the string 
 		if r.Kind() == reflect.String {
 			value := reflect.ValueOf(val).String()
-			expr = fmt.Sprintf("%s %s '%s'", key, equalOpr, escapeSingleQuote(value))
+			expr = fmt.Sprintf("%s %s '%s'", key, equalOpr, value)
 			exprs = append(exprs, expr)
 			continue 	
 		} 
@@ -174,7 +174,7 @@ func (lk Like) toSQL(opr string) (sql string, err error) {
 	var exprs []string
 	sortedKeys := getSortedStringKeys(lk)
 	for _, key := range sortedKeys {
-		expr := fmt.Sprintf("%s %s '%s'", escapeSingleQuote(key), opr, escapeSingleQuote(lk[key]))
+		expr := fmt.Sprintf("%s %s '%s'", key, opr, lk[key])
 		exprs = append(exprs, expr)
 	}
 
@@ -333,6 +333,8 @@ func isListType(val interface{}) bool {
 	return valVal.Kind() == reflect.Array || valVal.Kind() == reflect.Slice
 }
 
+// I'm putting this method on ice until I have time to write a proper parser to do this well
+/**
 // escapeSingleQuote is a naive escape mechanism for single quotes which are not 
 // at the beginning or end of the given string 
 func escapeSingleQuote(str string) string {
@@ -358,3 +360,4 @@ func escapeSingleQuote(str string) string {
 
 	return string(runes)
 }
+*/

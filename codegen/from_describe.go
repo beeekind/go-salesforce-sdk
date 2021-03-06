@@ -9,11 +9,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/b3ntly/salesforce/metadata"
+	"github.com/beeekind/go-salesforce-sdk/metadata"
 )
 
 // FromDescribe converts the result of a /sobjects/{objectName}/describe request to a list of objects
-// representing golang struct types annotated with their parent and child dependencies 
+// representing golang struct types annotated with their parent and child dependencies
 func FromDescribe(desc *metadata.Describe, ignoreRelations bool) (structs Structs, err error) {
 	structName, err := prepareStructName(desc.Name, neither)
 	if err != nil {
@@ -72,7 +72,7 @@ func FromDescribe(desc *metadata.Describe, ignoreRelations bool) (structs Struct
 		}
 	}
 
-	// do not include this object as a dependency of itself 
+	// do not include this object as a dependency of itself
 	structs[0].Dependencies = dedupe(structs[0].Dependencies, structs[0].Name)
 	if !structs.Valid() {
 		return nil, errors.New("codegen.FromDescribe produced invalid structs")

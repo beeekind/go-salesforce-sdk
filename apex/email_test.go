@@ -3,9 +3,9 @@ package apex_test
 import (
 	"testing"
 
-	"github.com/b3ntly/salesforce/apex"
-	"github.com/b3ntly/salesforce/client"
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/apex"
+	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 )
 
 var req = requests.Base.Sender(client.Must())

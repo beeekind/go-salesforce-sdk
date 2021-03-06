@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/b3ntly/salesforce/client"
-	"github.com/b3ntly/salesforce/composite"
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/composite"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/stretchr/testify/require"
 )
 

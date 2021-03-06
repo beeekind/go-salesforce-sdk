@@ -3,7 +3,7 @@ package main
 import (
 	"sync"
 
-	"github.com/b3ntly/salesforce/codegen"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
 )
 
 type structCache struct {

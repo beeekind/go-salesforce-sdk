@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/b3ntly/salesforce/codegen"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
 	"github.com/stretchr/testify/require"
 )
 
@@ -235,7 +235,7 @@ var newPropertyTests = map[*newPropertyInput]*newPropertyOutput{
 		"string",
 		codegen.Tag{"json": []string{"ParentId"}},
 		false,
-		false, 
+		false,
 	}},
 }
 
@@ -261,21 +261,21 @@ type newRelationPropertyOutput struct {
 
 var newRelationPropertyTests = map[*newRelationPropertyInput]*newRelationPropertyOutput{
 	{"Lead", "Leads"}: {"", &codegen.Property{
-		ParentName:"Lead", 
-		Name:"Leads", 
-		Documentation:"", 
-		Type:"struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Lead `json:\"records\"`\n}", 
-		Tag:codegen.Tag{"json":[]string{"Leads"}}, 
-		IsEmbedded:false,
+		ParentName:    "Lead",
+		Name:          "Leads",
+		Documentation: "",
+		Type:          "struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Lead `json:\"records\"`\n}",
+		Tag:           codegen.Tag{"json": []string{"Leads"}},
+		IsEmbedded:    false,
 	}},
 	{"Contact", "Employees"}: {"", &codegen.Property{
-		ParentName:"Contact", 
-		Name:"Employees", 
-		Documentation:"", 
-		Type:"struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Contact `json:\"records\"`\n}", 
-		Tag:codegen.Tag{"json":[]string{"Employees"}}, 
-		IsEmbedded:false,
-	},},
+		ParentName:    "Contact",
+		Name:          "Employees",
+		Documentation: "",
+		Type:          "struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Contact `json:\"records\"`\n}",
+		Tag:           codegen.Tag{"json": []string{"Employees"}},
+		IsEmbedded:    false,
+	}},
 }
 
 func TestNewRelationshipProperty(t *testing.T) {
@@ -289,8 +289,8 @@ func TestNewRelationshipProperty(t *testing.T) {
 }
 
 type overlapInput struct {
-	name string 
-	contents [][]byte 
+	name     string
+	contents [][]byte
 }
 
 type overlapOutput struct {
@@ -304,17 +304,17 @@ var overlapTests = map[*overlapInput]*overlapOutput{
 				{
 					Name: "Bar",
 					Type: "[]string",
-					Tag: codegen.Tag{"json": []string{"bar"}},
+					Tag:  codegen.Tag{"json": []string{"bar"}},
 				},
 			}},
 		},
 	},
 }
 
-func TestProperyOverlaps(t *testing.T){
+func TestProperyOverlaps(t *testing.T) {
 	for in, out := range overlapTests {
-		t.Run(in.name, func(t *testing.T){
-			var results codegen.Structs 
+		t.Run(in.name, func(t *testing.T) {
+			var results codegen.Structs
 
 			for _, c := range in.contents {
 				structs, err := codegen.FromJSON(in.name, "", c)

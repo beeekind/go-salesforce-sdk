@@ -9,14 +9,14 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/b3ntly/salesforce/internal/async"
-	"github.com/b3ntly/salesforce/internal/chromedp"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/internal/chromedp"
 	"github.com/stretchr/testify/require"
 )
 
 const tmpl = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
 
-var pool = async.New(30, nil, nil)
+var pool = async.New(30, nil)
 
 type workResult struct {
 	Endpoint string

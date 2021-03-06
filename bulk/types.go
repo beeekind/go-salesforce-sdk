@@ -3,7 +3,7 @@ package bulk
 import (
 	"net/http"
 
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 type client interface {
