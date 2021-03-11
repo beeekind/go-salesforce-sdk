@@ -1,15 +1,9 @@
+// +build broken
+
 package tree_test
 
 import (
-	"encoding/json"
-	"testing"
-
-	"github.com/beeekind/go-salesforce-sdk/client"
-	"github.com/beeekind/go-salesforce-sdk/examples/accounts"
-	"github.com/beeekind/go-salesforce-sdk/requests"
-	"github.com/beeekind/go-salesforce-sdk/tree"
 	"github.com/beeekind/go-salesforce-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -21,6 +15,8 @@ var (
 	numberOfEmployees = types.NewInt(100)
 	industry          = types.NewString("bar")
 )
+
+/**
 
 var req = requests.Base.Sender(client.Must())
 
@@ -127,3 +123,4 @@ func TestCreate(t *testing.T) {
 	contents, _ := json.MarshalIndent(response, "\t", "")
 	println(string(contents))
 }
+*/

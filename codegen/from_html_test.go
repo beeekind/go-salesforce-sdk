@@ -1,3 +1,5 @@
+// +build integration 
+
 package codegen_test
 
 import (

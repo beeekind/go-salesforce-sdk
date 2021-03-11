@@ -22,12 +22,12 @@ var fromDescriptionTests = map[*metadata.Describe][]codegen.Struct{
 		},
 	}: {
 		{Name: "Foo", Dependencies: []string{"Group", "User", "Event"}, Properties: []*codegen.Property{
-			{Name: "CreatedBy", Type: "*User", Tag: codegen.Tag{"json": []string{"CreatedBy"}}},
-			{Name: "CreatedByID", Type: "string", Tag: codegen.Tag{"json": []string{"CreatedById"}}},
-			{ParentName: "Foo", Name: "Events", Type: "struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tQueryResponse\n\tRecords []*Event `json:\"records\"`\n}", Tag: codegen.Tag{"json": []string{"Events"}}},
-			{Name: "Owner", Type: "*GroupUser", Tag: codegen.Tag{"json": []string{"Owner"}}},
-			{Name: "OwnerID", Type: "string", Tag: codegen.Tag{"json": []string{"OwnerId"}}},
-			{Name: "Title", Type: "string", Tag: codegen.Tag{"json": []string{"Title"}}},
+			{ParentName: "Foo", Name: "CreatedBy", Type: "*User", Tag: codegen.Tag{"json": []string{"CreatedBy"}}},
+			{ParentName: "", Name: "CreatedByID", Type: "string", Tag: codegen.Tag{"json": []string{"CreatedById"}}},
+			{ParentName: "Foo", Name: "Events", Type: "struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Event `json:\"records\"`\n}", Tag: codegen.Tag{"json": []string{"Events"}}},
+			{ParentName: "Foo", Name: "Owner", Type: "*GroupUser", Tag: codegen.Tag{"json": []string{"Owner"}}},
+			{ParentName: "", Name: "OwnerID", Type: "string", Tag: codegen.Tag{"json": []string{"OwnerId"}}},
+			{ParentName: "", Name: "Title", Type: "string", Tag: codegen.Tag{"json": []string{"Title"}}},
 		}},
 		{Name: "GroupUser", Dependencies: []string{"Group", "User"}, Properties: []*codegen.Property{
 			{Name: "Group", IsEmbedded: true},
@@ -42,6 +42,8 @@ func TestFromDescription(t *testing.T) {
 			result, err := codegen.FromDescribe(desc, false)
 			require.Nil(t, err)
 			require.Equal(t, len(expected), len(result))
+
+			result = result.Sort() 
 
 			for i := 0; i < len(expected); i++ {
 				s1 := expected[i]
@@ -92,12 +94,11 @@ func TestFromDescriptionSeed(t *testing.T) {
 				},
 			}
 
-			src, err := codegen.Render(seed)
-			require.Nil(t, err)
-
-			for k, v := range src {
-				println(k, string(v))
+			if _, err := codegen.Render(seed); err != nil {
+				t.Log(err.Error())
+				t.FailNow() 
 			}
+
 		})
 	}
 }

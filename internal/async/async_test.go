@@ -1,3 +1,5 @@
+// +build internal 
+
 package async_test
 
 import (
@@ -209,6 +211,8 @@ func TestThings(t *testing.T) {
 }
 
 func TestManyThings(t *testing.T) {
+	t.Skip() 
+
 	pool := async.New(5, ratelimit.New(5, time.Second, 5, memory.New()))
 	var inputs [][]async.Closure
 	for i := 0; i < 10; i++ {

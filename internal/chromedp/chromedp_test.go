@@ -1,3 +1,5 @@
+// +build internal 
+
 package chromedp_test
 
 import (
@@ -58,18 +60,21 @@ func work(subdir string, objectName string, docURL string) (string, error) {
 }
 
 func TestGetStandardObjects(t *testing.T) {
+	t.Skip() 
 	urls, err := chromedp.GetStandardObjects()
 	require.Nil(t, err)
 	require.Greater(t, len(urls), 0)
 }
 
 func TestGetToolingObjects(t *testing.T) {
+	t.Skip() 
 	urls, err := chromedp.GetToolingObjects()
 	require.Nil(t, err)
 	require.Greater(t, len(urls), 0)
 }
 
 func TestParseWebApp(t *testing.T) {
+	t.Skip() 
 	docs, err := chromedp.GetObjects()
 	require.Nil(t, err)
 
