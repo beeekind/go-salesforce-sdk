@@ -1,3 +1,5 @@
+// +build internal 
+
 package async_test
 
 import (
@@ -7,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/b3ntly/ratelimit"
-	"github.com/b3ntly/ratelimit/memory"
-	"github.com/b3ntly/salesforce/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/ratelimit"
+	"github.com/beeekind/ratelimit/memory"
 	"github.com/stretchr/testify/require"
 )
 
@@ -43,7 +45,7 @@ func example3() (string, error) {
 
 func TestPool_Retry(t *testing.T) {
 	t.Skip()
-	p := async.New(3, nil, nil)
+	p := async.New(3, nil)
 
 	var inputs []async.Closure
 	for i := 0; i < 50; i++ {
@@ -68,7 +70,7 @@ func TestPool_Retry(t *testing.T) {
 
 func TestPool_All(t *testing.T) {
 	t.Skip()
-	p := async.New(1, nil, nil)
+	p := async.New(1, nil)
 
 	a := &exampleResult{}
 	b := &exampleResult{}
@@ -112,7 +114,7 @@ func ExamplePool_All() {
 		return val, v, nil
 	}
 
-	p := async.New(10, nil, nil)
+	p := async.New(10, nil)
 
 	a := &fooResult{}
 	b := &fooResult{}
@@ -188,7 +190,7 @@ func (s *sampleCache) set(key, value int) {
 
 func TestThings(t *testing.T) {
 	t.Skip()
-	pool := async.New(10, nil, ratelimit.New(5, time.Second, 5, memory.New()))
+	pool := async.New(10, ratelimit.New(5, time.Second, 5, memory.New()))
 	var inputs []async.Closure
 	for i := 0; i < 50; i++ {
 		n := i
@@ -209,7 +211,9 @@ func TestThings(t *testing.T) {
 }
 
 func TestManyThings(t *testing.T) {
-	pool := async.New(5, nil, ratelimit.New(5, time.Second, 5, memory.New()))
+	t.Skip() 
+
+	pool := async.New(5, ratelimit.New(5, time.Second, 5, memory.New()))
 	var inputs [][]async.Closure
 	for i := 0; i < 10; i++ {
 		inputs = append(inputs, []async.Closure{
@@ -224,9 +228,5 @@ func TestManyThings(t *testing.T) {
 		} else {
 
 		}
-	}
-
-	for range time.Tick(time.Second) {
-		pool.Debug()
 	}
 }

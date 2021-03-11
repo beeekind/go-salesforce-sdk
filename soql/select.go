@@ -64,29 +64,6 @@ func (b Builder) MustSQL() string {
 }
 
 // toSQL composes the properties of selectData into a SOQL query string
-//
-// Note the order in which the query is composed from different properties
-// of selectData, messing with the ordering will likely produce corrupt SOQL.
-//
-// SOQL queries sent through the Salesforce REST API do not allow parameterized arguments and so
-// SQL INJECTION is a concern for this method though it is mitigated by a number of factors:
-// * SOQL used with the Salesforce REST API is read-only
-// * User and field level access control still apply
-// * We escape some single quote escape mechanisms within the WHERE clause
-//
-// Quoted from the Salesforce Docs:
-// https://developer.salesforce.com/docs/atlas.en-us.secure_coding_guide.meta/secure_coding_guide/secure_coding_sql_injection.htm
-// > The REST and SOAP APIs allow end users to submit arbitrary SOQL strings.
-// > However, this does not lead to SOQL injection because the APIs include built in checks for
-// > sharing and CRUD/FLS permissions. This means that end users are only allowed
-// > to see or modify records and fields that they already have access to.
-// > On the other hand, when making SOQL calls in Apex Code, no CRUD/FLS checks are performed
-// > (and sharing checks are only performed if the 'with sharing' keyword is used).
-// > Therefore it is a serious security vulnerability to allow end users to control the contents
-// > of a SOQL query issued in Apex code, but not for end users to control the contents of a SOQL query via the API.
-//
-// If you must absolutely purge any remote chance of user modified queries, you should either validate your user input (!!!)
-// or use custom http endpoints within Apex that do have the ability to use parameterized arguments to generate SOQL queries.
 func (d *selectData) toSQL() (string, error) {
 	if len(d.Columns) == 0 && len(d.Prefixes) == 0 && len(d.Suffixes) == 0 {
 		return "", fmt.Errorf("select statements must have at least one column")

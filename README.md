@@ -40,6 +40,7 @@ go install $GOPATH/src/github.com/beeekind/go-salesforce-sdk/cmd/go-salesforce-s
 - [x] HTTP Client Wrapper
     - [x] HttpTransport customization
     - [x] Ratelimiting 
+    - [x] GZIP compression 
 - [x] Querybuilder (based on [squirrel](https://github.com/Masterminds/squirrel))
     - [x] Select
     - [x] Where

@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/stretchr/testify/require"
 )
 

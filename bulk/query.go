@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/soql"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/soql"
 )
 
 const queryEndpoint = "jobs/query"

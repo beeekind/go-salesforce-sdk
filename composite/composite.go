@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/b3ntly/salesforce/metadata"
-	"github.com/b3ntly/salesforce/requests"
+	"github.com/beeekind/go-salesforce-sdk/metadata"
+	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/lann/builder"
 )
 

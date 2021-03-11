@@ -23,13 +23,12 @@ package async
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
 	"reflect"
 	"runtime"
+	"sync/atomic"
 	"time"
-
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"go.uber.org/atomic"
 )
 
 const (
@@ -46,14 +45,14 @@ const (
 	resultSent
 )
 
-const DefaultTimeout = time.Minute 
+var logger = log.New(os.Stdout, "INFO: ", log.Lshortfile)
 
 type (
 	// Pool manages a slice of workers that process units of work
 	Pool struct {
 		workers []*worker
 		queue   chan action
-		logger  *zerolog.Logger
+		logger  *log.Logger
 	}
 
 	// limiter provides a mechanism for ratelimiting worker actions
@@ -73,8 +72,7 @@ type (
 		limiter limiter
 		queue   chan action
 		exit    chan struct{}
-		logger  *zerolog.Logger
-		state   *atomic.Int32
+		state   int32
 	}
 
 	// Closure which wraps another closure, returning the
@@ -94,21 +92,21 @@ type (
 
 // work loops infinitely on the w.queue and w.exit channels and represents a worker working.
 func (w *worker) work() {
-	w.state.Store(startingInfiniteLoop)
+	atomic.StoreInt32(&w.state, startingInfiniteLoop)
 	for {
-		w.logger.Trace().Str("activity", "worker.work").Int("worker", w.idx).Str("status", "WAITING").Msg("")
-		w.state.Store(actionWait)
+		atomic.StoreInt32(&w.state, actionWait)
+
 		select {
 		case <-w.exit:
 			return
 		case fn := <-w.queue:
-			w.state.Store(actionReceived)
+			atomic.StoreInt32(&w.state, actionReceived)
 			idx, in, out := fn()
-			w.logger.Trace().Str("activity", "worker.work").Int("worker", w.idx).Str("status", "WORKING").Int("job", idx).Msg("")
-			w.state.Store(actionListen)
+			atomic.StoreInt32(&w.state, actionListen)
+
 			idx2 := 0
 			for fn := range in {
-				w.state.Store(closureReceived)
+				atomic.StoreInt32(&w.state, closureReceived)
 				var err error
 
 				if w.limiter != nil {
@@ -117,7 +115,7 @@ func (w *worker) work() {
 						var nextAllowed time.Duration
 						nextAllowed, err = w.limiter.Allow("")
 						if err != nil {
-							w.logger.Error().Stack().Err(err).Str("activity", "worker.work").Int("worker", w.idx).Str("status", "FAILED_RATELIMIT").Int("job", idx).Err(err).Msg("")
+							logger.Println(fmt.Sprintf("%s: %v: %v", err.Error(), w.idx, idx))
 							break
 						}
 
@@ -126,29 +124,26 @@ func (w *worker) work() {
 							break
 						}
 
-						w.logger.Trace().Int("worker", w.idx).Str("activity", "worker.work").Str("status", "SLEEP_RATELIMIT").Int("job", idx).Int64("ms", nextAllowed.Milliseconds()).Msg("")
-						w.state.Store(closureSleep)
+						atomic.StoreInt32(&w.state, closureSleep)
 						time.Sleep(nextAllowed)
-						w.state.Store(closureWake)
+						atomic.StoreInt32(&w.state, closureWake)
 					}
 				}
 
 				if err != nil {
-					w.state.Store(closureErr)
-					w.logger.Error().Err(err).Str("activity", "worker.work").Int("worker", w.idx).Str("status", "FAILED_RATELIMIT").Int("job", idx).Msg("")
-					w.state.Store(resultSend)
+					atomic.StoreInt32(&w.state, closureErr)
+					logger.Println(fmt.Sprintf("%s: %v: %v", err.Error(), w.idx, idx))
+					atomic.StoreInt32(&w.state, resultSend)
 					out <- Output{fn, err}
 
 				} else {
-					w.logger.Trace().Str("activity", "worker.work").Int("worker", w.idx).Str("status", "SENDING").Int("job", idx).Msg("")
-					w.state.Store(closureCall)
+					atomic.StoreInt32(&w.state, closureCall)
 					err := fn()
-					w.state.Store(resultSend)
+					atomic.StoreInt32(&w.state, resultSend)
 					out <- Output{fn, err}
-					w.logger.Trace().Str("activity", "worker.work").Int("worker", w.idx).Str("status", "SENT").Int("job", idx).Msg("")
 				}
 				idx2++
-				w.state.Store(resultSent)
+				atomic.StoreInt32(&w.state, resultSent)
 			}
 		}
 	}
@@ -231,12 +226,12 @@ func Wrap(timeout time.Duration, fn interface{}, result interface{}, args ...int
 
 		select {
 		case <-ctx.Done():
-			cancel() 
+			cancel()
 			return fmt.Errorf("timeout %s: %s: %w", timeout.String(), fnName, ctx.Err())
 		case err := <-exit:
-			cancel() 
+			cancel()
 			if err == nil {
-				return nil 
+				return nil
 			}
 
 			return fmt.Errorf("%s: %w", fnName, err)
@@ -246,65 +241,20 @@ func Wrap(timeout time.Duration, fn interface{}, result interface{}, args ...int
 }
 
 // New returns a new instance of pool with numWorkers spawned to serve messages sent to pool.queue
-func New(numWorkers int, logger *zerolog.Logger, limiter limiter) *Pool {
+func New(numWorkers int, limiter limiter) *Pool {
 	p := &Pool{
 		workers: make([]*worker, numWorkers),
 		queue:   make(chan action),
 		logger:  logger,
 	}
 
-	zerolog.SetGlobalLevel(zerolog.DebugLevel)
-
-	// if no logger is set use the global package logger
-	if logger == nil {
-		p.logger = &log.Logger
-	}
-
 	for i := 0; i < numWorkers; i++ {
 		uuid := i
-		p.workers[i] = &worker{uuid, limiter, p.queue, make(chan struct{}), p.logger, atomic.NewInt32(startingInfiniteLoop)}
+		p.workers[i] = &worker{uuid, limiter, p.queue, make(chan struct{}), startingInfiniteLoop}
 		go p.workers[uuid].work()
 	}
 
-	go func(p *Pool) {
-		for _ = range time.Tick(time.Second * 5) {
-			//p.Debug()
-		}
-	}(p)
-
 	return p
-}
-
-// Debug ...
-func (p *Pool) Debug() {
-	for _, w := range p.workers {
-		var state string
-		switch w.state.Load() {
-		case startingInfiniteLoop:
-			state = "starting"
-		case actionWait:
-			state = "actionWait"
-		case actionReceived:
-			state = "actionReceived"
-		case actionListen:
-			state = "actionListen"
-		case closureReceived:
-			state = "closureReceived"
-		case closureSleep:
-			state = "closureSleep"
-		case closureWake:
-			state = "closureWake"
-		case closureErr:
-			state = "closureErr"
-		case closureCall:
-			state = "closureCall"
-		case resultSend:
-			state = "resultSend"
-		case resultSent:
-			state = "resultSent"
-		}
-		p.logger.Debug().Int("id", w.idx).Str("state", state).Msg("")
-	}
 }
 
 // Stop attempts to stop all running workers.
@@ -377,39 +327,39 @@ func (p *Pool) exec(ignoreErrors bool, funcs ...Closure) (retries []Closure, err
 
 	ready := make(chan struct{})
 
-	go func(ready chan struct{}, ctx context.Context){
+	go func(ready chan struct{}, ctx context.Context) {
 		for {
 			select {
-			case <- time.Tick(time.Second):
-				available := 0 
+			case <-time.Tick(time.Second):
+				available := 0
 				for _, worker := range p.workers {
 					if available > 1 {
 						ready <- struct{}{}
-						return 
+						return
 					}
 
-					if worker.state.Load() == actionWait {
-						available++ 
+					if atomic.LoadInt32(&worker.state) == actionWait {
+						available++
 					}
 				}
 
-			case <- ctx.Done():
-				return 
+			case <-ctx.Done():
+				return
 			}
 		}
 
 	}(ready, ctx)
 
 	select {
-	case <- ctx.Done():
-		cancel() 
+	case <-ctx.Done():
+		cancel()
 		return funcs, ctx.Err()
-	case <-ready:	
-		cancel() 
+	case <-ready:
+		cancel()
 	}
 
 	// 1) push the in channel to each worker so they may process its work
-	for i := 0; i < len(p.workers) - 1; i++ {
+	for i := 0; i < len(p.workers)-1; i++ {
 		index := i
 		go func(index int, queue chan action, in chan Closure, out chan Output) {
 			queue <- func() (int, chan Closure, chan Output) {
@@ -422,17 +372,13 @@ func (p *Pool) exec(ignoreErrors bool, funcs ...Closure) (retries []Closure, err
 	for i := 0; i < len(funcs); i++ {
 		fn := funcs[i]
 		in <- fn
-		p.logger.Trace().Str("activity", "pool.exec").Int("total", len(funcs)).Str("status", "ENQUEUED").Int("index", i).Msg("")
 	}
 
-	p.logger.Trace().Str("activity", "pool.exec").Int("total", len(funcs)).Str("status", "ENQUEUED_ALL").Msg("")
 	close(in)
 
 	// 3) process all work
 	for i := 0; i < len(funcs); i++ {
 		o := <-out
-
-		p.logger.Trace().Str("activity", "pool.exec").Int("index", i).Int("total", len(funcs)).Str("status", "DEQUEUED").Msg("")
 
 		if o.Err != nil {
 			retries = append(retries, o.Retry)

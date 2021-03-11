@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/b3ntly/salesforce/internal/async"
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/soql"
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/soql"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 // Client ...
@@ -50,7 +50,7 @@ var defaultOptions = []Option{
 	WithPathPrefix("services/data"),
 	WithDailyAPIMax(15000),
 	WithUsage(0.40),
-	WithPool(async.New(50, nil, nil)),
+	WithPool(async.New(50, nil)),
 }
 
 // Must calls New(options...) and panics if an error occurs 

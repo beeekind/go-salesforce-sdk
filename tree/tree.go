@@ -14,8 +14,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 func init() {

@@ -14,19 +14,15 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/dom"
 	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
-
-	jsoniter "github.com/json-iterator/go"
 )
 
-// fastjson is a drop in replacement to encoding/json that performs significantly better on some benchmarks
-// we use this because the rate at which we can pull data out of salesforce is an important bottleneck
-var fastjson = jsoniter.ConfigCompatibleWithStandardLibrary
-
+// ErrUnmarshalEmpty ... 
 var ErrUnmarshalEmpty = errors.New("could not unmarshal an empty buffer")
 
 // RequestError contains additional metadata about the http error
@@ -40,6 +36,7 @@ func (e *RequestError) Error() string {
 	return fmt.Sprintf("http response (%v) returned: %s", e.Code, e.Contents)
 }
 
+// Is ... 
 func (e *RequestError) Is(tgt error) bool {
 	_, ok := tgt.(*RequestError)
 	return ok
@@ -51,7 +48,7 @@ func (e *RequestError) Unwrap() error {
 
 // Unmarshal ...
 func (e *RequestError) Unmarshal(dst interface{}) error {
-	return fastjson.Unmarshal([]byte(e.Contents), dst)
+	return json.Unmarshal([]byte(e.Contents), dst)
 }
 
 // ReadAndCloseResponse is a safety function that ensures we do not leak system resources by closing
@@ -97,7 +94,7 @@ func Unmarshal(r *http.Response, dst interface{}) ([]byte, error) {
 	}
 
 	if err != nil {
-		return nil, err 
+		return nil, err
 	}
 
 	if len(contents) == 0 {
@@ -170,7 +167,7 @@ func GetWebApp(url string) (contents []byte, err error) {
 	_, err = chromedp.RunResponse(ctx, chromedp.Tasks{
 		network.Enable(),
 		chromedp.Navigate(url),
-		//chromedp.Sleep(time.Second * 2),
+		chromedp.Sleep(time.Millisecond * 500),
 		// js rendering happens asynchronously and this call seems to be enough to account for that
 		chromedp.WaitReady(":root"),
 		//chromedp.WaitReady("networkidle0"),

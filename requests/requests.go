@@ -11,7 +11,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/b3ntly/salesforce/soql"
+	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/lann/builder"
 )
 
@@ -203,7 +203,7 @@ func (b Builder) Method(method string) Builder {
 	return builder.Set(b, "Method", method).(Builder)
 }
 
-// Context ... 
+// Context ...
 func (b Builder) Context(ctx context.Context) Builder {
 	return builder.Set(b, "Ctx", ctx).(Builder)
 }

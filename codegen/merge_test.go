@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/b3ntly/salesforce/codegen"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
 	"github.com/stretchr/testify/require"
 )
 

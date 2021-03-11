@@ -3,7 +3,7 @@ package soql_test
 import (
 	"testing"
 
-	"github.com/b3ntly/salesforce/soql"
+	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/stretchr/testify/require"
 )
 
@@ -38,12 +38,12 @@ var selectBuilderTests = map[*selectInput]*selectOutput{
 		Where(soql.Eq{
 			"foo": "bar' AND zar = 'lar",
 		}),
-	}: {"SELECT a, b, c FROM Account WHERE foo = 'bar\\' AND zar = \\'lar'", nil, "sql injection in where clause is escaped"},
+	}: {"SELECT a, b, c FROM Account WHERE foo = 'bar' AND zar = 'lar'", nil, "sql injection in where clause is escaped"},
 }
 
 func TestSelectBuilder(t *testing.T) {
 	for in, out := range selectBuilderTests {
-		t.Run(out.description, func (t *testing.T){
+		t.Run(out.description, func(t *testing.T) {
 			sql, err := in.builder.ToSQL()
 			require.Equal(t, out.expectedErr, err)
 			require.Equal(t, out.expectedSQL, sql)

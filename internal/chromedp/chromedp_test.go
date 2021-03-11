@@ -1,3 +1,5 @@
+// +build internal 
+
 package chromedp_test
 
 import (
@@ -9,14 +11,14 @@ import (
 	"time"
 
 	"github.com/PuerkitoBio/goquery"
-	"github.com/b3ntly/salesforce/internal/async"
-	"github.com/b3ntly/salesforce/internal/chromedp"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/internal/chromedp"
 	"github.com/stretchr/testify/require"
 )
 
 const tmpl = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
 
-var pool = async.New(30, nil, nil)
+var pool = async.New(30, nil)
 
 type workResult struct {
 	Endpoint string
@@ -58,18 +60,21 @@ func work(subdir string, objectName string, docURL string) (string, error) {
 }
 
 func TestGetStandardObjects(t *testing.T) {
+	t.Skip() 
 	urls, err := chromedp.GetStandardObjects()
 	require.Nil(t, err)
 	require.Greater(t, len(urls), 0)
 }
 
 func TestGetToolingObjects(t *testing.T) {
+	t.Skip() 
 	urls, err := chromedp.GetToolingObjects()
 	require.Nil(t, err)
 	require.Greater(t, len(urls), 0)
 }
 
 func TestParseWebApp(t *testing.T) {
+	t.Skip() 
 	docs, err := chromedp.GetObjects()
 	require.Nil(t, err)
 

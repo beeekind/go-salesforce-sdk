@@ -1,10 +1,10 @@
-package soql_test 
+package soql_test
 
 import (
 	"errors"
 	"testing"
 
-	"github.com/b3ntly/salesforce/soql"
+	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/stretchr/testify/require"
 )
 
@@ -130,15 +130,15 @@ func TestGte(t *testing.T) {
 	}
 }
 
-var likeTests = map[*exprInput]*exprOutput {
-	{soql.Like{"a": "foo"}}: {"a LIKE 'foo'", nil, "like clause with basic string"},
+var likeTests = map[*exprInput]*exprOutput{
+	{soql.Like{"a": "foo"}}:             {"a LIKE 'foo'", nil, "like clause with basic string"},
 	{soql.Like{"b": "zoo", "a": "foo"}}: {"a LIKE 'foo' AND b LIKE 'zoo'", nil, "like clause with basic string"},
-	{soql.Like{"a": "%foo%"}}: {"a LIKE '%foo%'", nil, "like clause with catch-all"},
-	{soql.Like{"a": ""}}: {"a LIKE ''", nil, "like clause with empty string value"},
-	{soql.Like{}}: {"", nil, "empty like clause"},
+	{soql.Like{"a": "%foo%"}}:           {"a LIKE '%foo%'", nil, "like clause with catch-all"},
+	{soql.Like{"a": ""}}:                {"a LIKE ''", nil, "like clause with empty string value"},
+	{soql.Like{}}:                       {"", nil, "empty like clause"},
 }
 
-func TestLike(t *testing.T){
+func TestLike(t *testing.T) {
 	for in, out := range likeTests {
 		t.Run(out.description, func(t *testing.T) {
 			sql, err := in.expr.ToSQL()
@@ -148,14 +148,14 @@ func TestLike(t *testing.T){
 	}
 }
 
-var notLikeTests = map[*exprInput]*exprOutput {
-	{soql.NotLike{"a": "foo"}}: {"a NOT LIKE 'foo'", nil, "not like clause with basic string"},
+var notLikeTests = map[*exprInput]*exprOutput{
+	{soql.NotLike{"a": "foo"}}:   {"a NOT LIKE 'foo'", nil, "not like clause with basic string"},
 	{soql.NotLike{"a": "%foo%"}}: {"a NOT LIKE '%foo%'", nil, "not like clause with catch-all"},
-	{soql.NotLike{"a": ""}}: {"a NOT LIKE ''", nil, "not like clause with empty string value"},
-	{soql.NotLike{}}: {"", nil, "empty like clause"},
+	{soql.NotLike{"a": ""}}:      {"a NOT LIKE ''", nil, "not like clause with empty string value"},
+	{soql.NotLike{}}:             {"", nil, "empty like clause"},
 }
 
-func TestNotLike(t *testing.T){
+func TestNotLike(t *testing.T) {
 	for in, out := range notLikeTests {
 		t.Run(out.description, func(t *testing.T) {
 			sql, err := in.expr.ToSQL()
@@ -165,7 +165,7 @@ func TestNotLike(t *testing.T){
 	}
 }
 
-var conjugationTests = map[*exprInput]*exprOutput {
+var conjugationTests = map[*exprInput]*exprOutput{
 	{soql.And{
 		soql.Eq{"a": 1},
 		soql.Lt{"c": 0},
@@ -184,9 +184,25 @@ var conjugationTests = map[*exprInput]*exprOutput {
 	}}: {"(a = 1 OR c < 0 OR (b != 2 OR d >= 'foo'))", nil, "nested conjugation with Or{}"},
 }
 
-func TestConjugations(t *testing.T){
+func TestConjugations(t *testing.T) {
 	for in, out := range conjugationTests {
-		t.Run(out.description, func(t *testing.T){
+		t.Run(out.description, func(t *testing.T) {
+			sql, err := in.expr.ToSQL()
+			require.Equal(t, out.expectedErr, err)
+			require.Equal(t, out.expectedSQL, sql)
+		})
+	}
+}
+
+var subqueryTests = map[*exprInput]*exprOutput{
+	{soql.Select("three").Column(soql.SubQuery(soql.Select("one").From("two"))).From("four")}: {
+		"SELECT three, (SELECT one FROM two) FROM four", nil, "basic subquery",
+	},
+}
+
+func TestSubQuery(t *testing.T) {
+	for in, out := range subqueryTests {
+		t.Run(out.description, func(t *testing.T) {
 			sql, err := in.expr.ToSQL()
 			require.Equal(t, out.expectedErr, err)
 			require.Equal(t, out.expectedSQL, sql)

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/b3ntly/salesforce/codegen"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
 	"github.com/stretchr/testify/require"
 )
 
@@ -136,74 +136,6 @@ func TestCodegenJSON2Go(t *testing.T) {
 	}
 }
 
-type structStringInput json2goInput
-
-type structStringOutput struct {
-	description string
-	err         error
-	code        []string
-}
-
-var structStringTests = map[*structStringInput]*structStringOutput{
-	{"Foo", "", []byte(`{
-		"foo": "bar",
-		"bar": 4,
-		"see": 0.432,
-		"lar": ["nar", "sar"],
-		"zar": {"lar": "tar"},
-		"nar": [33, 22],
-		"fields": [
-			{"par": 4}
-		],
-		"tar": {
-			"foo": "bar",
-			"bar": 4,
-			"see": 0.432,
-			"lar": ["nar", "sar"],
-			"zar": {"lar": "tar"},
-			"nar": [33, 22],
-			"fields": [
-				{"par": 4}
-			]
-		}
-	}`)}: {"FooExample", nil, []string{
-		"\n// Field ... \ntype Field struct {\n\t// Par ... \n\tPar int64 `json:\"par\"`\n}",
-
-		"\n// Field ... \ntype Field struct {\n\t// Par ... \n\tPar int64 `json:\"par\"`\n}",
-
-		"\n// Foo ... \ntype Foo struct {\n\t// Bar ... \n\tBar int64 `json:\"bar\"`\n\t// Fields ... \n\tFields []*Field `json:\"fields\"`\n\t// Foo ... \n\tFoo string `json:\"foo\"`\n\t// Lar ... \n\tLar []string `json:\"lar\"`\n\t// Nar ... \n\tNar []int64 `json:\"nar\"`\n\t// See ... \n\tSee float64 `json:\"see\"`\n\t// Tar ... \n\tTar *Tar `json:\"tar\"`\n\t// Zar ... \n\tZar *Zar `json:\"zar\"`\n}",
-
-		"\n// Tar ... \ntype Tar struct {\n\t// Bar ... \n\tBar int64 `json:\"bar\"`\n\t// Fields ... \n\tFields []*Field `json:\"fields\"`\n\t// Foo ... \n\tFoo string `json:\"foo\"`\n\t// Lar ... \n\tLar []string `json:\"lar\"`\n\t// Nar ... \n\tNar []int64 `json:\"nar\"`\n\t// See ... \n\tSee float64 `json:\"see\"`\n\t// Zar ... \n\tZar *Zar `json:\"zar\"`\n}",
-
-		"\n// Zar ... \ntype Zar struct {\n\t// Lar ... \n\tLar string `json:\"lar\"`\n}",
-
-		"\n// Zar ... \ntype Zar struct {\n\t// Lar ... \n\tLar string `json:\"lar\"`\n}",
-	}},
-}
-
-func TestStructString(t *testing.T) {
-	for in, out := range structStringTests {
-		t.Run(out.description, func(t *testing.T) {
-			results, err := codegen.FromJSON(in.name, in.documentation, in.payload)
-			require.Equal(t, out.err, err)
-
-			sort.Slice(results, func(i, j int) bool {
-				return results[i].Name < results[j].Name
-			})
-
-			for idx, result := range results {
-				src, err := result.String()
-				if err != nil {
-					t.Log(idx, err.Error())
-				}
-
-				require.Nil(t, err)
-				require.Equal(t, out.code[idx], src, idx)
-			}
-		})
-	}
-}
-
 type newPropertyInput struct {
 	parent        string
 	name          string
@@ -235,7 +167,7 @@ var newPropertyTests = map[*newPropertyInput]*newPropertyOutput{
 		"string",
 		codegen.Tag{"json": []string{"ParentId"}},
 		false,
-		false, 
+		false,
 	}},
 }
 
@@ -249,48 +181,9 @@ func TestNewProperty(t *testing.T) {
 	}
 }
 
-type newRelationPropertyInput struct {
-	parentName   string
-	relationName string
-}
-
-type newRelationPropertyOutput struct {
-	description string
-	result      *codegen.Property
-}
-
-var newRelationPropertyTests = map[*newRelationPropertyInput]*newRelationPropertyOutput{
-	{"Lead", "Leads"}: {"", &codegen.Property{
-		ParentName:"Lead", 
-		Name:"Leads", 
-		Documentation:"", 
-		Type:"struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Lead `json:\"records\"`\n}", 
-		Tag:codegen.Tag{"json":[]string{"Leads"}}, 
-		IsEmbedded:false,
-	}},
-	{"Contact", "Employees"}: {"", &codegen.Property{
-		ParentName:"Contact", 
-		Name:"Employees", 
-		Documentation:"", 
-		Type:"struct {\n\tDone bool `json:\"done\"`\n\tCount int `json:\"count\"`\n\tTotalSize int `json:\"totalSize\"`\n\tRecords []*Contact `json:\"records\"`\n}", 
-		Tag:codegen.Tag{"json":[]string{"Employees"}}, 
-		IsEmbedded:false,
-	},},
-}
-
-func TestNewRelationshipProperty(t *testing.T) {
-	for in, out := range newRelationPropertyTests {
-		t.Run(out.description, func(t *testing.T) {
-			result, err := codegen.NewChildProperty(in.parentName, in.relationName)
-			require.Nil(t, err)
-			require.Equal(t, out.result, result)
-		})
-	}
-}
-
 type overlapInput struct {
-	name string 
-	contents [][]byte 
+	name     string
+	contents [][]byte
 }
 
 type overlapOutput struct {
@@ -303,18 +196,18 @@ var overlapTests = map[*overlapInput]*overlapOutput{
 			{Name: "Foo", Properties: []*codegen.Property{
 				{
 					Name: "Bar",
-					Type: "[]string",
-					Tag: codegen.Tag{"json": []string{"bar"}},
+					Type: "interface{}",
+					Tag:  codegen.Tag{"json": []string{"bar"}},
 				},
 			}},
 		},
 	},
 }
 
-func TestProperyOverlaps(t *testing.T){
+func TestProperyOverlaps(t *testing.T) {
 	for in, out := range overlapTests {
-		t.Run(in.name, func(t *testing.T){
-			var results codegen.Structs 
+		t.Run(in.name, func(t *testing.T) {
+			var results codegen.Structs
 
 			for _, c := range in.contents {
 				structs, err := codegen.FromJSON(in.name, "", c)

@@ -9,16 +9,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/b3ntly/ratelimit"
-	"github.com/b3ntly/ratelimit/memory"
-	"github.com/b3ntly/salesforce/client"
-	"github.com/b3ntly/salesforce/codegen"
-	"github.com/b3ntly/salesforce/composite"
-	"github.com/b3ntly/salesforce/internal/async"
-	"github.com/b3ntly/salesforce/metadata"
-	"github.com/b3ntly/salesforce/requests"
-	"github.com/b3ntly/salesforce/soql"
-	"github.com/b3ntly/salesforce/types"
+	"github.com/beeekind/ratelimit"
+	"github.com/beeekind/ratelimit/memory"
+	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/codegen"
+	"github.com/beeekind/go-salesforce-sdk/composite"
+	"github.com/beeekind/go-salesforce-sdk/internal/async"
+	"github.com/beeekind/go-salesforce-sdk/metadata"
+	"github.com/beeekind/go-salesforce-sdk/requests"
+	"github.com/beeekind/go-salesforce-sdk/soql"
+	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
 // "If the data can't be found here, check out what's behind API endpoint number 5"
@@ -39,7 +39,7 @@ var DefaultClient = client.Must(
 			"../private.pem",
 		),
 	),
-	client.WithPool(async.New(100, nil, ratelimit.New(5, time.Second*1, 10, memory.New()))),
+	client.WithPool(async.New(100, ratelimit.New(5, time.Second*1, 10, memory.New()))),
 	client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),
 )
 
