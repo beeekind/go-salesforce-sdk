@@ -36,6 +36,7 @@ func TestNew(t *testing.T) {
 }
 
 func TestNewWithJWT(t *testing.T) {
+	t.Skip() 
 	client, err := client.New(client.WithJWTBearer(
 		os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
 		os.Getenv("SALESFORCE_SDK_USERNAME"),
