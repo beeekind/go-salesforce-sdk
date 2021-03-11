@@ -34,6 +34,7 @@ func TestParseWebApp(t *testing.T) {
 }
 
 func TestGetWebApp(t *testing.T) {
+	t.Skip() 
 	for _, objectName := range testObjects {
 		URL := fmt.Sprintf(docTemplate, strings.ToLower(objectName))
 		doc, err := requests.ParseWebApp(URL)
