@@ -1,3 +1,5 @@
+![Tests](https://github.com/beeekind/go-salesforce-sdk/actions/workflows/test.yaml/badge.svg)
+
 # Go Salesforce SDK
 
 go-salesforce-sdk is an unofficial SDK for the Salesforce REST API. 
