@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/beeekind/go-salesforce-sdk/internal/async"
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -52,17 +51,17 @@ func (e *LoginError) Error() string {
 	return fmt.Sprintf("%s: %s", e.ErrorMessage, e.ErrorDescription)
 }
 
-// WithLoginFailover ... 
+// WithLoginFailover ...
 func WithLoginFailover(options ...Option) Option {
 	return func(client *Client) error {
-		var err error 
+		var err error
 		for _, opt := range options {
 			err = opt(client)
 			if err == nil {
-				return nil 
+				return nil
 			}
 		}
-		return err 
+		return err
 	}
 }
 
@@ -291,14 +290,6 @@ func WithVersion(apiVersion string) Option {
 		}
 
 		client.apiVersion = fmt.Sprintf("v%s", apiVersion)
-		return nil
-	}
-}
-
-// WithPool ...
-func WithPool(pool *async.Pool) Option {
-	return func(client *Client) error {
-		client.pool = pool
 		return nil
 	}
 }

@@ -198,10 +198,6 @@ func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error
 }
 
 func describe(objectName string, ignoreRelations bool) (codegen.Structs, error) {
-	if structs, exists := describeCache.get(objectName); exists {
-		return structs, nil
-	}
-
 	var describe metadata.Describe
 	uri := fmt.Sprintf("%s/%s/%s", "sobjects", objectName, "describe")
 	_, err := requests.
@@ -218,24 +214,16 @@ func describe(objectName string, ignoreRelations bool) (codegen.Structs, error) 
 		return nil, err
 	}
 
-	describeCache.set(objectName, structs)
 	return structs, nil
 }
 
 func reference(entity *codegen.Struct) error {
-	if structs, exists := referenceCache.get(entity.Name); exists {
-		final := codegen.MergeDocumentation(*entity, *structs[0])
-		entity.Documentation = final.Documentation
-		entity.Properties = final.Properties
-		return nil
-	}
-
 	objectURL := fmt.Sprintf(objectDocumentationTmpl, strings.ToLower(entity.Name))
 	toolingURL := fmt.Sprintf(toolingDocumentationTmpl, strings.ToLower(entity.Name))
 
-	doc, err := requests.ParseWebApp(objectURL)
+	doc, err := ParseWebApp(objectURL)
 	if err != nil {
-		doc, err = requests.ParseWebApp(toolingURL)
+		doc, err = ParseWebApp(toolingURL)
 		if err != nil {
 			println(5, entity.Name, err.Error())
 			return nil
@@ -252,16 +240,10 @@ func reference(entity *codegen.Struct) error {
 	final := codegen.MergeDocumentation(*entity, *documentationStruct)
 	entity.Documentation = final.Documentation
 	entity.Properties = final.Properties
-	referenceCache.set(entity.Name, codegen.Structs{entity})
 	return nil
 }
 
 func description(entity *codegen.Struct) error {
-	if structs, exists := descriptionCache.get(entity.Name); exists {
-		final := codegen.MergeDocumentation(*entity, codegen.Struct{Name: entity.Name, Documentation: structs[0].Documentation})
-		entity.Documentation = final.Documentation
-	}
-
 	type entities struct {
 		types.QueryResponse
 		Records []*metadata.EntityDefinition `json:"records"`
@@ -289,6 +271,5 @@ func description(entity *codegen.Struct) error {
 
 	final := codegen.MergeDocumentation(*entity, codegen.Struct{Name: entity.Name, Documentation: result.Records[0].Description})
 	entity.Documentation = final.Documentation
-	descriptionCache.set(entity.Name, codegen.Structs{{Name: entity.Name, Documentation: result.Records[0].Description}})
 	return nil
 }

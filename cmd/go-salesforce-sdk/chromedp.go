@@ -12,7 +12,7 @@
 // Performance could be improved further by querying only parts of the page we care about such as
 // https://developer.salesforce.com/docs/get_document_content/object_reference/sforce_api_objects_account.htm/en-us/230.0
 // however I prefer the more publicly available root documentation page even if it is more resource intensive.
-package chromedp
+package main
 
 import (
 	"bytes"
@@ -24,6 +24,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	"github.com/chromedp/cdproto/dom"
+	"github.com/chromedp/cdproto/network"
 	"github.com/chromedp/chromedp"
 )
 
@@ -43,21 +44,12 @@ var (
 	ErrNoHTMLTable = errors.New("no data table found within htmml")
 	// ErrNoDetailPageForRow ...
 	ErrNoDetailPageForRow = errors.New("could not find link to documentation")
-	// DefaultOptions configure chromedp to wait until specific page content is rendered before 
-	// returning an html document. these configurations are specific to salesforce documentation
-	// pages.
-	DefaultOptions = []chromedp.Action{
-		chromedp.WaitReady(":root"),
-		chromedp.WaitVisible("h1.helpHead1"),
-		//chromedp.WaitVisible(".section .data table tbody"),
-		chromedp.ScrollIntoView(".prev-next-button"),
-	}
 )
 
 // ParseWebApp is a high level API for retrieving a searchable HTML document from
 // a JS-Rendered webpage
-func ParseWebApp(url string, timeout time.Duration, options ...chromedp.Action) (*goquery.Document, error) {
-	pageContents, err := GetWebApp(url, timeout, options...)
+func ParseWebApp(url string) (*goquery.Document, error) {
+	pageContents, err := GetWebApp(url)
 	if err != nil {
 		return nil, fmt.Errorf("ParseWebApp(): %w", err)
 	}
@@ -70,33 +62,23 @@ func ParseWebApp(url string, timeout time.Duration, options ...chromedp.Action) 
 	return doc, nil
 }
 
-// contexts can be customized and reused if declared as globals here, however initial testing
-// shows no meaningful improvements with these tweaks
-// var ChromeCtx, _ = chromedp.NewContext(context.Background())
-/**
-var opts = append(
-	chromedp.DefaultExecAllocatorOptions[:],
-	chromedp.DisableGPU,
-	chromedp.Flag("headless", false),
-)
-var rootCtx, _ = chromedp.NewExecAllocator(context.Background(), opts...)
-var parentCtx, _ = chromedp.NewContext(rootCtx)
-*/
-
 // GetWebApp returns the results of a js-rendered web page
-func GetWebApp(url string, timeout time.Duration, options ...chromedp.Action) (contents []byte, err error) {
+func GetWebApp(url string) (contents []byte, err error) {
 	var outterHTML string
 
 	ctx, cancel := chromedp.NewContext(context.Background())
 	defer cancel()
 
 	_, err = chromedp.RunResponse(ctx, chromedp.Tasks{
-		// network.Enable(),
+		network.Enable(),
 		chromedp.Navigate(url),
-		// chromedp is inherently racey and may result in infinite blocks when trying to 
-		// wait for query selectors to become rendered/visible. wrapping such options in a timeout
-		// helps mitigate this problem. 
-		runWithTimeout(&ctx, timeout, options),
+		chromedp.Sleep(time.Millisecond * 500),
+		// js rendering happens asynchronously and this call seems to be enough to account for that
+		chromedp.WaitReady(":root"),
+		//chromedp.WaitReady("networkidle0"),
+		//chromedp.ScrollIntoView(".prev-next-button"),
+		chromedp.WaitVisible(".container.docs-content"),
+		//chromedp.WaitVisible("span#topic-title.ph"),
 
 		chromedp.ActionFunc(func(ctx context.Context) error {
 			node, err := dom.GetDocument().Do(ctx)
@@ -114,14 +96,6 @@ func GetWebApp(url string, timeout time.Duration, options ...chromedp.Action) (c
 	}
 
 	return []byte(outterHTML), nil
-}
-
-func runWithTimeout(ctx *context.Context, timeout time.Duration, tasks chromedp.Tasks) chromedp.ActionFunc {
-	return func(ctx context.Context) error {
-		timeoutContext, cancel := context.WithTimeout(ctx, timeout)
-		defer cancel()
-		return tasks.Do(timeoutContext)
-	}
 }
 
 // GetObjects returns a map of objectName=>objectDetailPageURL for all standard objects
@@ -169,7 +143,7 @@ func getObjects(category domain) (map[string]string, error) {
 }
 
 func getObject(url string) (map[string]string, error) {
-	doc, err := ParseWebApp(url, time.Second * 3, DefaultOptions...)
+	doc, err := ParseWebApp(url)
 	if err != nil {
 		return nil, err
 	}
