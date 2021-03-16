@@ -3,9 +3,7 @@ package requests
 // http.go contains project specific utilities that improve on the standard libraries net/http library
 
 import (
-	"bytes"
 	"compress/gzip"
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -14,15 +12,9 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
-
-	"github.com/PuerkitoBio/goquery"
-	"github.com/chromedp/cdproto/dom"
-	"github.com/chromedp/cdproto/network"
-	"github.com/chromedp/chromedp"
 )
 
-// ErrUnmarshalEmpty ... 
+// ErrUnmarshalEmpty ...
 var ErrUnmarshalEmpty = errors.New("could not unmarshal an empty buffer")
 
 // RequestError contains additional metadata about the http error
@@ -36,7 +28,7 @@ func (e *RequestError) Error() string {
 	return fmt.Sprintf("http response (%v) returned: %s", e.Code, e.Contents)
 }
 
-// Is ... 
+// Is ...
 func (e *RequestError) Is(tgt error) bool {
 	_, ok := tgt.(*RequestError)
 	return ok
@@ -137,61 +129,6 @@ func ExtractUsageHeader(response *http.Response) (used int64, total int64, err e
 	}
 
 	return int64(u), int64(t), nil
-}
-
-// ParseWebApp is a high level API for retrieving a searchable HTML document from
-// a JS-Rendered webpage
-func ParseWebApp(url string) (*goquery.Document, error) {
-	pageContents, err := GetWebApp(url)
-	if err != nil {
-		return nil, fmt.Errorf("ParseWebApp(): %w", err)
-	}
-
-	doc, err := goquery.NewDocumentFromReader(bytes.NewReader(pageContents))
-	if err != nil {
-		return nil, fmt.Errorf("ParseWebApp(): goquery.NewDocumentFromReader(): %w", err)
-	}
-
-	return doc, nil
-}
-
-// var ChromeCtx, _ = chromedp.NewContext(context.Background())
-
-// GetWebApp returns the results of a js-rendered web page
-func GetWebApp(url string) (contents []byte, err error) {
-	var outterHTML string
-
-	ctx, cancel := chromedp.NewContext(context.Background())
-	defer cancel()
-
-	_, err = chromedp.RunResponse(ctx, chromedp.Tasks{
-		network.Enable(),
-		chromedp.Navigate(url),
-		chromedp.Sleep(time.Millisecond * 500),
-		// js rendering happens asynchronously and this call seems to be enough to account for that
-		chromedp.WaitReady(":root"),
-		//chromedp.WaitReady("networkidle0"),
-		//chromedp.ScrollIntoView(".prev-next-button"),
-		chromedp.WaitVisible(".container.docs-content"),
-		//chromedp.WaitVisible("span#topic-title.ph"),
-		chromedp.ActionFunc(func(ctx context.Context) error {
-			node, err := dom.GetDocument().Do(ctx)
-			if err != nil {
-				return err
-			}
-
-			//time.Sleep(time.Second)
-
-			outterHTML, err = dom.GetOuterHTML().WithNodeID(node.NodeID).Do(ctx)
-			return err
-		}),
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("ParseWebApp(): ActionFunc(): %w", err)
-	}
-
-	return []byte(outterHTML), nil
 }
 
 // ComputeSubsequentRecordURLs identifies the cursor used for a query

@@ -9,16 +9,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/beeekind/ratelimit"
-	"github.com/beeekind/ratelimit/memory"
 	"github.com/beeekind/go-salesforce-sdk/client"
 	"github.com/beeekind/go-salesforce-sdk/codegen"
 	"github.com/beeekind/go-salesforce-sdk/composite"
-	"github.com/beeekind/go-salesforce-sdk/internal/async"
 	"github.com/beeekind/go-salesforce-sdk/metadata"
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/beeekind/go-salesforce-sdk/types"
+	"github.com/beeekind/ratelimit"
+	"github.com/beeekind/ratelimit/memory"
 )
 
 // "If the data can't be found here, check out what's behind API endpoint number 5"
@@ -39,7 +38,6 @@ var DefaultClient = client.Must(
 			"../private.pem",
 		),
 	),
-	client.WithPool(async.New(100, ratelimit.New(5, time.Second*1, 10, memory.New()))),
 	client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),
 )
 
@@ -50,8 +48,8 @@ var DefaultClient = client.Must(
 // Versions returns data on available API versions for the Salesforce REST API
 //
 // This method is used during authentication so that we may default to the latest
-// REST API endpoint. 
-func Versions()([]*client.APIVersion, error){
+// REST API endpoint.
+func Versions() ([]*client.APIVersion, error) {
 	return DefaultClient.APIVersions()
 }
 
@@ -89,7 +87,7 @@ func Types(structName string, endpoint string) (codegen.Structs, error) {
 	contents, err := requests.ReadAndCloseResponse(response)
 	// we can still derive types from an error response for an endpoint, so as long as
 	// there is something in response.Body we will ignore this error. For example, disabled API features
-	// return errors and thats ok. 
+	// return errors and thats ok.
 	//
 	// parameterizedSearch 400 | serviceTemplates 401 | payments 404 |
 	// compactLayouts 400 | smartdatadiscovery 403 | prechatForms 405 |
@@ -204,8 +202,8 @@ func Count(objectName string) (int, error) {
 }
 
 // Find returns all paginated resources for a given query. If there
-// are many results and/or many fields this method will take longer 
-// to execute and use more of your org's API limit. 
+// are many results and/or many fields this method will take longer
+// to execute and use more of your org's API limit.
 //
 // The parameter dst should be a pointer value to a slice of types matching
 // the expected query records.
@@ -217,7 +215,7 @@ func Find(query string, dst interface{}) error {
 }
 
 // FindAll is akin to the queryAll resource which returns
-// soft deleted resources in addition to regular records. 
+// soft deleted resources in addition to regular records.
 //
 // The parameter dst should be a pointer value to a slice of types matching
 // the expected query records.
@@ -230,8 +228,8 @@ func FindAll(query string, dst interface{}) error {
 
 // FindByID returns a single result filtered by Id.
 //
-// The parameter dst should be a pointer to a type matching the 
-// expected query record. 
+// The parameter dst should be a pointer to a type matching the
+// expected query record.
 func FindByID(objectName string, objectID string, fields []string, dst interface{}) error {
 	var response types.QueryParts
 	_, err := requests.
@@ -263,7 +261,7 @@ func FindByID(objectName string, objectID string, fields []string, dst interface
 //
 // This SDK goes out of its way to not be an ORM which is why the method
 // signature doesnt use a generated type like those derived from the codegen
-// package. 
+// package.
 func Create(objectName string, fields map[string]interface{}) (ID string, err error) {
 	var response composite.Output
 	contents, err := requests.
@@ -290,10 +288,10 @@ func Create(objectName string, fields map[string]interface{}) (ID string, err er
 	return response.ID, nil
 }
 
-// UpdateByID updates the given objectName with the given ID. 
+// UpdateByID updates the given objectName with the given ID.
 //
-// Salesforce update responses return empty response bodies and statusCode 
-// 204 upon success. 
+// Salesforce update responses return empty response bodies and statusCode
+// 204 upon success.
 func UpdateByID(objectName string, ID string, fields map[string]interface{}) error {
 	var result composite.Error
 

@@ -9,8 +9,8 @@ Checkout our [release notes](https://github.com/beeekind/go-salesforce-sdk/relea
 Jump To:
 
 * [Installation](https://github.com/beeekind/go-salesforce-sdk#Installation)
-* [Features](https://github.com/beeekind/go-salesforce-sdk#Features)
 * [Examples](https://github.com/beeekind/go-salesforce-sdk#Examples)
+* [Features](https://github.com/beeekind/go-salesforce-sdk#Features)
 * [Packages](https://github.com/beeekind/go-salesforce-sdk#Packages)
 * [Contribute](https://github.com/beeekind/go-salesforce-sdk#Contribute)
 * [Credits](https://github.com/beeekind/go-salesforce-sdk#Credits)
@@ -27,71 +27,6 @@ go get github.com/beeekind/go-salesforce-sdk
 go install $GOPATH/src/github.com/beeekind/go-salesforce-sdk/cmd/go-salesforce-sdk
 
 ```
-
-# Features 
---- 
-
-- [x] Generate type definitions 
-    - [x] Standard Objects 
-    - [x] Tooling Objects 
-- [x] Authentication Mechanisms
-    - [x] JWT flow (recommended)
-    - [x] Password flow
-- [x] Concurrent Processing 
-    - [x] Pre-compute paginated resources for retrieving all paginated records quickly
-- [x] HTTP Client Wrapper
-    - [x] HttpTransport customization
-    - [x] Ratelimiting 
-    - [x] GZIP compression 
-- [x] Querybuilder (based on [squirrel](https://github.com/Masterminds/squirrel))
-    - [x] Select
-    - [x] Where
-        - [x] Equality | Inequality 
-        - [x] Subqueries 
-        - [x] Like | NotLike
-        - [x] GT | LT | GTE | LTE 
-        - [x] Conjugations (And | Or)
-    - [x] Group By
-    - [x] Order By(s)
-    - [x] Limit
-    - [x] Offset 
-    - [x] Prefixes 
-    - [x] Suffixes 
-- [x] Request Builder 
-    - [x] URL composition 
-    - [x] Method
-    - [x] URL parameters 
-    - [x] Headers 
-    - [x] SOQL embeding 
-    - [x] Build as http.Response
-    - [x] Unmarshal into struct 
-    - [x] application/x-www-form-urlencoded submissions
-- [x] Custom Types
-    - [x] Nullable (bool | string | int | float)
-    - [x] Date / Datetime 
-    - [x] Address 
-    - [x] [AlmostBool](https://github.com/beeekind/go-salesforce-sdk/blob/892727d16ecf24f6cadd0a287bc06f890d47657f/types/absurd.go#L16)
-- [x] Metadata Response Types 
-    - [x] /describe 
-    - [x] /describe/{objectName}
-    - [x] Limits 
-    - [x] Query 
-    - [x] Tooling/query
-- [x] Bulk API v2
-    - [x] Ingest 
-    - [x] Query 
-- [x] Composite 
-    - [x] Create 
-    - [x] Read 
-    - [x] Update 
-    - [x] Delete 
-- [x] Tree 
-    - [x] ParseNode(typeDefinition)
-    - [x] Recursive object nesting 
-- [x] Execute Anonymous Apex
-    - [x] SingleEmailMessage 
-
-- ### And much more...
 
 # Examples 
 
@@ -159,6 +94,71 @@ func main(){
 }
 ```
 
+# Features 
+--- 
+
+- [x] Generate type definitions 
+    - [x] Standard Objects 
+    - [x] Tooling Objects 
+- [x] Authentication Mechanisms
+    - [x] JWT flow (recommended)
+    - [x] Password flow
+- [x] Concurrent Processing 
+    - [x] Pre-compute paginated resources for retrieving all paginated records quickly
+- [x] HTTP Client Wrapper
+    - [x] HttpTransport customization
+    - [x] Ratelimiting 
+    - [x] GZIP compression 
+- [x] Querybuilder (based on [squirrel](https://github.com/Masterminds/squirrel))
+    - [x] Select
+    - [x] Where
+        - [x] Equality | Inequality 
+        - [x] Subqueries 
+        - [x] Like | NotLike
+        - [x] GT | LT | GTE | LTE 
+        - [x] Conjugations (And | Or)
+    - [x] Group By
+    - [x] Order By(s)
+    - [x] Limit
+    - [x] Offset 
+    - [x] Prefixes 
+    - [x] Suffixes 
+- [x] Request Builder 
+    - [x] URL composition 
+    - [x] Method
+    - [x] URL parameters 
+    - [x] Headers 
+    - [x] SOQL embeding 
+    - [x] Build as http.Response
+    - [x] Unmarshal into struct 
+    - [x] application/x-www-form-urlencoded submissions
+- [x] Custom Types
+    - [x] Nullable (bool | string | int | float)
+    - [x] Date / Datetime 
+    - [x] Address 
+    - [x] [AlmostBool](https://github.com/beeekind/go-salesforce-sdk/blob/892727d16ecf24f6cadd0a287bc06f890d47657f/types/absurd.go#L16)
+- [x] Metadata Response Types 
+    - [x] /describe 
+    - [x] /describe/{objectName}
+    - [x] Limits 
+    - [x] Query 
+    - [x] Tooling/query
+- [x] Bulk API v2
+    - [x] Ingest 
+    - [x] Query 
+- [x] Composite 
+    - [x] Create 
+    - [x] Read 
+    - [x] Update 
+    - [x] Delete 
+- [x] Tree 
+    - [x] ParseNode(typeDefinition)
+    - [x] Recursive object nesting 
+- [x] Execute Anonymous Apex
+    - [x] SingleEmailMessage 
+
+- ### And much more...
+
 # Packages 
 
 | Package            | Link | Description                                               | 
@@ -169,7 +169,6 @@ func main(){
 | bulk               | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/bulk)      | Methods for bulk uploading and retrieving objects as text/csv                                  | 
 | client             | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/client)    | Wraps http.Client and provides authentication, ratelimiting, and http.Transport customization  | 
 | composite          | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/composite) | Provides Create, Read, Update, and Delete, operations with the Composite API  | 
-| internal           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/internal)  | Internal use only.  | 
 | metadata           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/metadata)  | TBD  | 
 | requests           | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/requests)  | HTTP request building using the builder design pattern  | 
 | soql               | [Link](https://github.com/beeekind/go-salesforce-sdk/tree/main/soql)      | SOQL (Salesforce Object Query Language) building using the builder design pattern  |

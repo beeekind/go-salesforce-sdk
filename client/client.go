@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"time"
 
-	"github.com/beeekind/go-salesforce-sdk/internal/async"
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/beeekind/go-salesforce-sdk/types"
@@ -19,7 +19,6 @@ import (
 // Client ...
 type Client struct {
 	// mu protects access to reference fields in this struct like client, pool, and limiter
-	pool          *async.Pool
 	limiter       Limiter
 	client        *http.Client
 	loginURL      string
@@ -50,16 +49,15 @@ var defaultOptions = []Option{
 	WithPathPrefix("services/data"),
 	WithDailyAPIMax(15000),
 	WithUsage(0.40),
-	WithPool(async.New(50, nil)),
 }
 
-// Must calls New(options...) and panics if an error occurs 
+// Must calls New(options...) and panics if an error occurs
 func Must(options ...Option) *Client {
 	client, err := New(options...)
 	if err != nil {
 		panic(err)
 	}
-	return client 
+	return client
 }
 
 // New creates a new instance of client.Client . The instance may be customized
@@ -163,11 +161,6 @@ func (c *Client) APIVersions() (versions []*APIVersion, err error) {
 	return versions, nil
 }
 
-type result struct {
-	Body []byte
-	Err  error
-}
-
 // QueryMore executes a soql query on the query endpoint and returns all paginated
 // resources. By analyzing the first and second serialized requests
 // we can pre-compute all subsequent paginated resources and concurrently process remaining
@@ -206,35 +199,74 @@ func (c *Client) QueryMore(builder soql.Builder, dst interface{}, includeSoftDel
 		)
 	}
 
+	initialPayloads := [][]byte{firstResponse.Records, secondResponse.Records}
+
 	// 3) use the first and second queries to compute all paginated resources
 	URLs, err := requests.ComputeSubsequentRecordURLs(c.instanceURL, firstResponse.NextRecordsURL, secondResponse.NextRecordsURL, firstResponse.TotalSize)
 	if err != nil {
 		return err
 	}
 
-	// 4) concurrently query all remaining resources
-	var inputs []async.Closure
-	var results []*types.QueryResponse
-	for i := 0; i < len(URLs); i++ {
-		uri := URLs[i]
-		dst := &types.QueryResponse{}
-		method := requests.Sender(c).URL(uri).JSON
-		results = append(results, dst)
-		inputs = append(inputs, async.MustInput(0, method, &result{}, dst))
+	// 4) execute all subsequent paginated queries 
+	payloads, err := c.querySubsequentURLs(URLs...)
+	if err != nil {
+		return err 
 	}
 
-	if _, err := c.pool.All(inputs...); err != nil {
-		return err
+	// 5) build them into a single []byte which can be unmarshalled 
+	results := requests.MergeJSONArrays(append(initialPayloads, payloads...)...)
+
+	// 6) unmarshal them 
+	return json.Unmarshal(results, dst)
+}
+
+type result struct {
+	Body []byte
+	Err  error
+}
+
+func (c *Client) querySubsequentURLs(paginatedURLs ...string) (payloads [][]byte, err error) {
+	numWorkers := 100
+	if numWorkers > len(paginatedURLs) {
+		numWorkers = len(paginatedURLs)
 	}
 
-	var payloads [][]byte
-	for i := 0; i < len(results); i++ {
-		result := results[i]
-		payloads = append(payloads, result.Records)
+	input := make(chan string, len(paginatedURLs))
+	output := make(chan *result, len(paginatedURLs))
+
+	for i := 0; i < len(paginatedURLs); i++ {
+		item := paginatedURLs[i]
+		input <- item
+	}
+	close(input)
+
+
+	var wg sync.WaitGroup
+	wg.Add(len(paginatedURLs))
+
+	for j := 0; j < numWorkers; j++ {
+		go func(wg *sync.WaitGroup, client *Client, input chan string, output chan *result) {
+			for url := range input {
+				contents, err := requests.Sender(client).URL(url).JSON(nil)
+				output <- &result{contents, err}
+				wg.Done() 
+			}
+
+		}(&wg, c, input, output)
 	}
 
-	// 5) collate the results into dst
-	return json.Unmarshal(requests.MergeJSONArrays(payloads...), dst)
+	wg.Wait()
+	close(output)
+
+	for result := range output {
+		if result.Err != nil {
+			return nil, err 
+		}
+
+		payloads = append(payloads, result.Body)
+	}
+
+	return payloads, nil 
 }
 
 // URL parses a url segment into a fully qualified Salesforce API request using client.instanceURL,

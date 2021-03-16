@@ -62,6 +62,7 @@ func TestQueryMore(t *testing.T) {
 
 	require.Nil(t, err)
 	require.Greater(t, len(results.Records), 0)
+	t.Log(len(results.Records))
 }
 
 type clientURLInput string

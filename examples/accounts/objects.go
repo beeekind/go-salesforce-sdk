@@ -9,223 +9,6 @@ import "github.com/beeekind/go-salesforce-sdk/types"
 // Represents an individual account, which is an organization or person involved with your business (such as
 // customers, competitors, and partners).
 type Account struct {
-	// Site ...
-	//
-	// Name of the account’s location, for example Headquarters or London. Label is Account Site. Maximum of 80
-	// characters.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Site string `json:"Site"`
-	// NumberofLocations__c ...
-	NumberofLocations__c float64 `json:"NumberofLocations__c"`
-	// Name ...
-	//
-	// Required. Label is Account Name. Name of the account. Maximum size is 255 characters. If the account has a
-	// record type of Person Account: This value is the concatenation of the FirstName, MiddleName, LastName, and
-	// Suffix of the associated person contact. You can't modify this value.
-	//
-	// Properties:Create, Filter,
-	// Group, Sort, Update
-	Name string `json:"Name"`
-	// AnnualRevenue ...
-	//
-	// Estimated annual revenue of the account.
-	//
-	// Properties:Create, Filter, Nillable, Sort, Update
-	AnnualRevenue float64 `json:"AnnualRevenue"`
-	// ShippingCity ...
-	//
-	// Details of the shipping address for this account. City maximum size is 40 characters
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ShippingCity string `json:"ShippingCity"`
-	// SystemModstamp ...
-	SystemModstamp types.Datetime `json:"SystemModstamp"`
-	// Sic ...
-	//
-	// Standard Industrial Classification code of the company’s main business categorization, for example,
-	// 57340 for Electronics. Maximum of 20 characters. This field is available on business accounts, not person
-	// accounts.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Sic string `json:"Sic"`
-	// ShippingCountry ...
-	//
-	// Details of the shipping address for this account. Country maximum size is 80 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ShippingCountry string `json:"ShippingCountry"`
-	// ShippingAddress ...
-	//
-	// The compound form of the shipping address. Read-only. See Address Compound Fields for details on compound
-	// address fields.
-	//
-	// Properties:Filter, Nillable
-	ShippingAddress types.Address `json:"ShippingAddress"`
-	// Phone ...
-	//
-	// Phone number for this account. Maximum size is 40 characters.
-	//
-	// Properties:Create, Filter,
-	// Group, Nillable, Sort, Update
-	Phone string `json:"Phone"`
-	// LastReferencedDate ...
-	//
-	// The timestamp when the current user last accessed this record, a record related to this record, or a list
-	// view.
-	//
-	// Properties:Filter, Nillable, Sort
-	LastReferencedDate types.Datetime `json:"LastReferencedDate"`
-	// Jigsaw ...
-	//
-	// References the ID of a company in Data.com. If an account has a value in this field, it means that the account
-	// was imported from Data.com. If the field value is null, the account was not imported from Data.com. Maximum
-	// size is 20 characters. Available in API version 22.0 and later. Label is Data.com Key. This field is available on
-	// business accounts, not person accounts. Important The Jigsaw field is exposed in the API to support
-	// troubleshooting for import errors and reimporting of corrected data. Do not modify the value in the Jigsaw field.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Jigsaw string `json:"Jigsaw"`
-	// SLA__c ...
-	SLA__c string `json:"SLA__c"`
-	// ShippingStreet ...
-	//
-	// The street address of the shipping address for this account. Maximum of 255 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ShippingStreet string `json:"ShippingStreet"`
-	// BillingStreet ...
-	//
-	// Street address for the billing address of this account.
-	//
-	// Properties:Create, Filter, Group,
-	// Nillable, Sort, Update
-	BillingStreet string `json:"BillingStreet"`
-	// BillingGeocodeAccuracy ...
-	//
-	// Accuracy level of the geocode for the billing address. See Compound Field Considerations and Limitations
-	// for details on geolocation compound fields.
-	//
-	// Properties:Create, Filter, Group, Nillable,
-	// Restricted picklist, Sort, Update
-	BillingGeocodeAccuracy string `json:"BillingGeocodeAccuracy"`
-	// BillingAddress ...
-	//
-	// The compound form of the billing address. Read-only. See Address Compound Fields for details on compound
-	// address fields.
-	//
-	// Properties:Filter, Nillable
-	BillingAddress types.Address `json:"BillingAddress"`
-	// ShippingLongitude ...
-	//
-	// Used with ShippingLatitude to specify the precise geolocation of an address. Acceptable values are
-	// numbers between –180 and 180 with up to 15 decimal places. See Compound Field Considerations and Limitations for
-	// details on geolocation compound fields.
-	//
-	// Properties:Create, Filter, Nillable, Sort, Update
-	ShippingLongitude float64 `json:"ShippingLongitude"`
-	// JigsawCompanyID ...
-	JigsawCompanyID string `json:"JigsawCompanyId"`
-	// ParentID ...
-	//
-	// ID of the parent object, if any.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ParentID string `json:"ParentId"`
-	// Fax ...
-	//
-	// Fax number for the account.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Fax string `json:"Fax"`
-	// LastViewedDate ...
-	//
-	// The timestamp when the current user last viewed this record or list view. If this value is null, the user
-	// might have only accessed this record or list view (LastReferencedDate) but not viewed it.
-	//
-	//
-	// Properties:Filter, Nillable, Sort
-	LastViewedDate types.Datetime `json:"LastViewedDate"`
-	// OperatingHoursID ...
-	//
-	// The operating hours associated with the account. Available only if Field Service is enabled.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	OperatingHoursID string `json:"OperatingHoursId"`
-	// Type ...
-	//
-	// Type of account, for example, Customer, Competitor, or Partner.
-	//
-	// Properties:Create, Filter,
-	// Group, Nillable, Sort, Update
-	Type string `json:"Type"`
-	// ShippingGeocodeAccuracy ...
-	//
-	// Accuracy level of the geocode for the shipping address. See Compound Field Considerations and
-	// Limitations for details on geolocation compound fields.
-	//
-	// Properties:Create, Filter, Group, Nillable,
-	// Restricted picklist, Sort, Update
-	ShippingGeocodeAccuracy string `json:"ShippingGeocodeAccuracy"`
-	// SLAExpirationDate__c ...
-	SLAExpirationDate__c types.Date `json:"SLAExpirationDate__c"`
-	// ID ...
-	ID string `json:"Id"`
-	// YearStarted ...
-	//
-	// The date when an org was legally established. Maximum length is 4 characters. This field is available on
-	// business accounts, not person accounts. Note This field is only available to organizations that use Data.com
-	// Prospector or Data.com Clean.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	YearStarted string `json:"YearStarted"`
-	// SicDesc ...
-	//
-	// A brief description of an org’s line of business, based on its SIC code. Maximum length is 80 characters.
-	// This field is available on business accounts, not person accounts.
-	//
-	// Properties:Create, Filter,
-	// Group, Nillable, Sort, Update
-	SicDesc string `json:"SicDesc"`
-	// DandbCompanyID ...
-	DandbCompanyID string `json:"DandbCompanyId"`
-	// CustomerPriority__c ...
-	CustomerPriority__c string `json:"CustomerPriority__c"`
-	// AccountNumber ...
-	//
-	// Account number assigned to this account (not the unique, system-generated ID assigned during creation).
-	// Maximum size is 40 characters.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	AccountNumber string `json:"AccountNumber"`
-	// PhotoURL ...
-	//
-	// Path to be combined with the URL of a Salesforce instance (for example,
-	// https://yourInstance.salesforce.com/) to generate a URL to request the social network profile image associated with the account. Generated URL
-	// returns an HTTP redirect (code 302) to the social network profile image for the account. Blank if Social Accounts
-	// and Contacts isn't enabled for the org or if Social Accounts and Contacts is disabled for the requesting
-	// user.
-	//
-	// Properties:Filter, Group, Nillable, Sort
-	PhotoURL string `json:"PhotoUrl"`
-	// NumberOfEmployees ...
-	//
-	// Label is Employees. Number of employees working at the company represented by this account. Maximum size
-	// is eight digits.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	NumberOfEmployees int `json:"NumberOfEmployees"`
-	// Description ...
-	//
-	// Text description of the account. Limited to 32,000 KB.
-	//
-	// Properties:Create, Nillable, Update
-	Description string `json:"Description"`
 	// DunsNumber ...
 	//
 	// The Data Universal Numbering System (D-U-N-S) number is a unique, nine-digit number assigned to every
@@ -237,100 +20,43 @@ type Account struct {
 	//
 	// Properties:Create, Filter, Group, Nillable, Sort, Update
 	DunsNumber string `json:"DunsNumber"`
-	// Tradestyle ...
-	//
-	// A name, different from its legal name, that an org may use for conducting business. Similar to “Doing
-	// business as” or “DBA”. Maximum length is 255 characters. This field is available on business accounts, not
-	// person accounts. Note This field is only available to organizations that use Data.com Prospector or Data.com
-	// Clean.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Tradestyle string `json:"Tradestyle"`
-	// ShippingState ...
-	//
-	// Details of the shipping address for this account. State maximum size is 80 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ShippingState string `json:"ShippingState"`
-	// CreatedByID ...
-	CreatedByID string `json:"CreatedById"`
-	// MasterRecordID ...
-	//
-	// If this object was deleted as the result of a merge, this field contains the ID of the record that was kept. If
-	// this object was deleted for any other reason, or has not been deleted, the value is null.
-	//
-	//
-	// Properties:Filter, Group, Nillable, Sort
-	MasterRecordID string `json:"MasterRecordId"`
-	// BillingLongitude ...
-	//
-	// Used with BillingLatitude to specify the precise geolocation of a billing address. Acceptable values are
-	// numbers between –180 and 180 with up to 15 decimal places. See Compound Field Considerations and Limitations for
-	// details on geolocation compound fields.
-	//
-	// Properties:Create, Filter, Nillable, Sort, Update
-	BillingLongitude float64 `json:"BillingLongitude"`
-	// Industry ...
-	//
-	// An industry associated with this account. Maximum size is 40 characters.
-	//
-	// Properties:Create,
-	// Filter, Group, Nillable, Sort, Update
-	Industry string `json:"Industry"`
-	// Ownership ...
-	//
-	// Ownership type for the account, for example Private, Public, or Subsidiary.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	Ownership string `json:"Ownership"`
-	// CleanStatus ...
-	//
-	// Indicates the record’s clean status as compared with Data.com. Values are: Matched, Different,
-	// Acknowledged, NotFound, Inactive, Pending, SelectMatch, or Skipped.Several values for CleanStatus display with
-	// different labels on the account record detail page. Matched displays as In Sync Acknowledged displays as Reviewed
-	// Pending displays as Not Compared
-	//
-	// Properties:Create, Filter, Group, Nillable, Restricted picklist,
-	// Sort, Update
-	CleanStatus string `json:"CleanStatus"`
-	// Active__c ...
-	Active__c string `json:"Active__c"`
-	// BillingPostalCode ...
-	//
-	// Details for the billing address of this account. Maximum size is 20 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	BillingPostalCode string `json:"BillingPostalCode"`
-	// BillingState ...
+	// DandbCompanyID ...
+	DandbCompanyID string `json:"DandbCompanyId"`
+	// BillingCountry ...
 	//
 	// Details for the billing address of this account. Maximum size is 80 characters.
 	//
 	//
 	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	BillingState string `json:"BillingState"`
-	// Website ...
+	BillingCountry string `json:"BillingCountry"`
+	// BillingAddress ...
 	//
-	// The website of this account. Maximum of 255 characters.
+	// The compound form of the billing address. Read-only. See Address Compound Fields for details on compound
+	// address fields.
 	//
-	// Properties:Create, Filter, Group,
-	// Nillable, Sort, Update
-	Website string `json:"Website"`
-	// LastModifiedDate ...
-	LastModifiedDate types.Datetime `json:"LastModifiedDate"`
-	// LastModifiedByID ...
-	LastModifiedByID string `json:"LastModifiedById"`
-	// SLASerialNumber__c ...
-	SLASerialNumber__c string `json:"SLASerialNumber__c"`
-	// IsDeleted ...
+	// Properties:Filter, Nillable
+	BillingAddress types.Address `json:"BillingAddress"`
+	// LastActivityDate ...
 	//
-	// Indicates whether the object has been moved to the Recycle Bin (true) or not (false). Label is
-	// Deleted.
+	// Value is one of the following, whichever is the most recent: Due date of the most recent event logged against
+	// the record. Due date of the most recently closed task associated with the record.
 	//
-	// Properties:Defaulted on create, Filter
-	IsDeleted bool `json:"IsDeleted"`
+	//
+	// Properties:Filter, Group, Nillable, Sort
+	LastActivityDate types.Date `json:"LastActivityDate"`
+	// JigsawCompanyID ...
+	JigsawCompanyID string `json:"JigsawCompanyId"`
+	// NaicsCode ...
+	//
+	// The six-digit North American Industry Classification System (NAICS) code is the standard used by
+	// business and government to classify business establishments into industries, according to their economic
+	// activity for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business
+	// economy. Maximum size is 8 characters. This field is available on business accounts, not person accounts. Note This
+	// field is only available to organizations that use Data.com Prospector or Data.com Clean.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	NaicsCode string `json:"NaicsCode"`
 	// TickerSymbol ...
 	//
 	// The stock market symbol for this account. Maximum of 20 characters. This field is available on business
@@ -356,76 +82,40 @@ type Account struct {
 	//
 	// Properties:Create, Defaulted on create, Filter, Group, Sort, Update
 	OwnerID string `json:"OwnerId"`
-	// CreatedDate ...
-	CreatedDate types.Datetime `json:"CreatedDate"`
-	// NaicsCode ...
+	// LastReferencedDate ...
 	//
-	// The six-digit North American Industry Classification System (NAICS) code is the standard used by
-	// business and government to classify business establishments into industries, according to their economic
-	// activity for the purpose of collecting, analyzing, and publishing statistical data related to the U.S. business
-	// economy. Maximum size is 8 characters. This field is available on business accounts, not person accounts. Note This
-	// field is only available to organizations that use Data.com Prospector or Data.com Clean.
+	// The timestamp when the current user last accessed this record, a record related to this record, or a list
+	// view.
 	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	NaicsCode string `json:"NaicsCode"`
-	// BillingCountry ...
-	//
-	// Details for the billing address of this account. Maximum size is 80 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	BillingCountry string `json:"BillingCountry"`
-	// BillingCity ...
-	//
-	// Details for the billing address of this account. Maximum size is 40 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	BillingCity string `json:"BillingCity"`
-	// ShippingPostalCode ...
-	//
-	// Details of the shipping address for this account. Postal code maximum size is 20 characters.
-	//
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	ShippingPostalCode string `json:"ShippingPostalCode"`
-	// ShippingLatitude ...
-	//
-	// Used with ShippingLongitude to specify the precise geolocation of a shipping address. Acceptable values
-	// are numbers between –90 and 90 with up to 15 decimal places. See Compound Field Considerations and
-	// Limitations for details on geolocation compound fields.
-	//
-	// Properties:Create, Filter, Nillable, Sort,
-	// Update
-	ShippingLatitude float64 `json:"ShippingLatitude"`
-	// LastActivityDate ...
-	//
-	// Value is one of the following, whichever is the most recent: Due date of the most recent event logged against
-	// the record. Due date of the most recently closed task associated with the record.
-	//
-	//
-	// Properties:Filter, Group, Nillable, Sort
-	LastActivityDate types.Date `json:"LastActivityDate"`
-	// AccountSource ...
-	//
-	// The source of the account record. For example, Advertisement, Data.com, or Trade Show. The source is
-	// selected from a picklist of available values, which are set by an administrator. Each picklist value can have up to 40
-	// characters.
-	//
-	// Properties:Create, Filter, Group, Nillable, Sort, Update
-	AccountSource string `json:"AccountSource"`
-	// NaicsDesc ...
-	//
-	// A brief description of an org’s line of business, based on its NAICS code. Maximum size is 120 characters.
-	// This field is available on business accounts, not person accounts. Note This field is only available to
-	// organizations that use Data.com Prospector or Data.com Clean.
-	//
-	// Properties:Create, Filter, Group, Nillable,
-	// Sort, Update
-	NaicsDesc string `json:"NaicsDesc"`
+	// Properties:Filter, Nillable, Sort
+	LastReferencedDate types.Datetime `json:"LastReferencedDate"`
 	// UpsellOpportunity__c ...
 	UpsellOpportunity__c string `json:"UpsellOpportunity__c"`
+	// BillingGeocodeAccuracy ...
+	//
+	// Accuracy level of the geocode for the billing address. See Compound Field Considerations and Limitations
+	// for details on geolocation compound fields.
+	//
+	// Properties:Create, Filter, Group, Nillable,
+	// Restricted picklist, Sort, Update
+	BillingGeocodeAccuracy string `json:"BillingGeocodeAccuracy"`
+	// ShippingGeocodeAccuracy ...
+	//
+	// Accuracy level of the geocode for the shipping address. See Compound Field Considerations and
+	// Limitations for details on geolocation compound fields.
+	//
+	// Properties:Create, Filter, Group, Nillable,
+	// Restricted picklist, Sort, Update
+	ShippingGeocodeAccuracy string `json:"ShippingGeocodeAccuracy"`
+	// Ownership ...
+	//
+	// Ownership type for the account, for example Private, Public, or Subsidiary.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Ownership string `json:"Ownership"`
+	// ID ...
+	ID string `json:"Id"`
 	// BillingLatitude ...
 	//
 	// Used with BillingLongitude to specify the precise geolocation of a billing address. Acceptable values
@@ -435,4 +125,314 @@ type Account struct {
 	// Properties:Create, Filter, Nillable, Sort,
 	// Update
 	BillingLatitude float64 `json:"BillingLatitude"`
+	// AccountNumber ...
+	//
+	// Account number assigned to this account (not the unique, system-generated ID assigned during creation).
+	// Maximum size is 40 characters.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	AccountNumber string `json:"AccountNumber"`
+	// Website ...
+	//
+	// The website of this account. Maximum of 255 characters.
+	//
+	// Properties:Create, Filter, Group,
+	// Nillable, Sort, Update
+	Website string `json:"Website"`
+	// YearStarted ...
+	//
+	// The date when an org was legally established. Maximum length is 4 characters. This field is available on
+	// business accounts, not person accounts. Note This field is only available to organizations that use Data.com
+	// Prospector or Data.com Clean.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	YearStarted string `json:"YearStarted"`
+	// SicDesc ...
+	//
+	// A brief description of an org’s line of business, based on its SIC code. Maximum length is 80 characters.
+	// This field is available on business accounts, not person accounts.
+	//
+	// Properties:Create, Filter,
+	// Group, Nillable, Sort, Update
+	SicDesc string `json:"SicDesc"`
+	// ShippingAddress ...
+	//
+	// The compound form of the shipping address. Read-only. See Address Compound Fields for details on compound
+	// address fields.
+	//
+	// Properties:Filter, Nillable
+	ShippingAddress types.Address `json:"ShippingAddress"`
+	// Site ...
+	//
+	// Name of the account’s location, for example Headquarters or London. Label is Account Site. Maximum of 80
+	// characters.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Site string `json:"Site"`
+	// LastModifiedByID ...
+	LastModifiedByID string `json:"LastModifiedById"`
+	// SystemModstamp ...
+	SystemModstamp types.Datetime `json:"SystemModstamp"`
+	// Tradestyle ...
+	//
+	// A name, different from its legal name, that an org may use for conducting business. Similar to “Doing
+	// business as” or “DBA”. Maximum length is 255 characters. This field is available on business accounts, not
+	// person accounts. Note This field is only available to organizations that use Data.com Prospector or Data.com
+	// Clean.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Tradestyle string `json:"Tradestyle"`
+	// BillingState ...
+	//
+	// Details for the billing address of this account. Maximum size is 80 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	BillingState string `json:"BillingState"`
+	// BillingPostalCode ...
+	//
+	// Details for the billing address of this account. Maximum size is 20 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	BillingPostalCode string `json:"BillingPostalCode"`
+	// ShippingStreet ...
+	//
+	// The street address of the shipping address for this account. Maximum of 255 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ShippingStreet string `json:"ShippingStreet"`
+	// Active__c ...
+	Active__c string `json:"Active__c"`
+	// Sic ...
+	//
+	// Standard Industrial Classification code of the company’s main business categorization, for example,
+	// 57340 for Electronics. Maximum of 20 characters. This field is available on business accounts, not person
+	// accounts.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Sic string `json:"Sic"`
+	// AccountSource ...
+	//
+	// The source of the account record. For example, Advertisement, Data.com, or Trade Show. The source is
+	// selected from a picklist of available values, which are set by an administrator. Each picklist value can have up to 40
+	// characters.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	AccountSource string `json:"AccountSource"`
+	// NumberofLocations__c ...
+	NumberofLocations__c float64 `json:"NumberofLocations__c"`
+	// Type ...
+	//
+	// Type of account, for example, Customer, Competitor, or Partner.
+	//
+	// Properties:Create, Filter,
+	// Group, Nillable, Sort, Update
+	Type string `json:"Type"`
+	// ShippingCountry ...
+	//
+	// Details of the shipping address for this account. Country maximum size is 80 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ShippingCountry string `json:"ShippingCountry"`
+	// ShippingLongitude ...
+	//
+	// Used with ShippingLatitude to specify the precise geolocation of an address. Acceptable values are
+	// numbers between –180 and 180 with up to 15 decimal places. See Compound Field Considerations and Limitations for
+	// details on geolocation compound fields.
+	//
+	// Properties:Create, Filter, Nillable, Sort, Update
+	ShippingLongitude float64 `json:"ShippingLongitude"`
+	// ShippingCity ...
+	//
+	// Details of the shipping address for this account. City maximum size is 40 characters
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ShippingCity string `json:"ShippingCity"`
+	// ShippingLatitude ...
+	//
+	// Used with ShippingLongitude to specify the precise geolocation of a shipping address. Acceptable values
+	// are numbers between –90 and 90 with up to 15 decimal places. See Compound Field Considerations and
+	// Limitations for details on geolocation compound fields.
+	//
+	// Properties:Create, Filter, Nillable, Sort,
+	// Update
+	ShippingLatitude float64 `json:"ShippingLatitude"`
+	// Phone ...
+	//
+	// Phone number for this account. Maximum size is 40 characters.
+	//
+	// Properties:Create, Filter,
+	// Group, Nillable, Sort, Update
+	Phone string `json:"Phone"`
+	// PhotoURL ...
+	//
+	// Path to be combined with the URL of a Salesforce instance (for example,
+	// https://yourInstance.salesforce.com/) to generate a URL to request the social network profile image associated with the account. Generated URL
+	// returns an HTTP redirect (code 302) to the social network profile image for the account. Blank if Social Accounts
+	// and Contacts isn't enabled for the org or if Social Accounts and Contacts is disabled for the requesting
+	// user.
+	//
+	// Properties:Filter, Group, Nillable, Sort
+	PhotoURL string `json:"PhotoUrl"`
+	// SLASerialNumber__c ...
+	SLASerialNumber__c string `json:"SLASerialNumber__c"`
+	// IsDeleted ...
+	//
+	// Indicates whether the object has been moved to the Recycle Bin (true) or not (false). Label is
+	// Deleted.
+	//
+	// Properties:Defaulted on create, Filter
+	IsDeleted bool `json:"IsDeleted"`
+	// BillingStreet ...
+	//
+	// Street address for the billing address of this account.
+	//
+	// Properties:Create, Filter, Group,
+	// Nillable, Sort, Update
+	BillingStreet string `json:"BillingStreet"`
+	// BillingLongitude ...
+	//
+	// Used with BillingLatitude to specify the precise geolocation of a billing address. Acceptable values are
+	// numbers between –180 and 180 with up to 15 decimal places. See Compound Field Considerations and Limitations for
+	// details on geolocation compound fields.
+	//
+	// Properties:Create, Filter, Nillable, Sort, Update
+	BillingLongitude float64 `json:"BillingLongitude"`
+	// Jigsaw ...
+	//
+	// References the ID of a company in Data.com. If an account has a value in this field, it means that the account
+	// was imported from Data.com. If the field value is null, the account was not imported from Data.com. Maximum
+	// size is 20 characters. Available in API version 22.0 and later. Label is Data.com Key. This field is available on
+	// business accounts, not person accounts. Important The Jigsaw field is exposed in the API to support
+	// troubleshooting for import errors and reimporting of corrected data. Do not modify the value in the Jigsaw field.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Jigsaw string `json:"Jigsaw"`
+	// NaicsDesc ...
+	//
+	// A brief description of an org’s line of business, based on its NAICS code. Maximum size is 120 characters.
+	// This field is available on business accounts, not person accounts. Note This field is only available to
+	// organizations that use Data.com Prospector or Data.com Clean.
+	//
+	// Properties:Create, Filter, Group, Nillable,
+	// Sort, Update
+	NaicsDesc string `json:"NaicsDesc"`
+	// OperatingHoursID ...
+	//
+	// The operating hours associated with the account. Available only if Field Service is enabled.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	OperatingHoursID string `json:"OperatingHoursId"`
+	// CustomerPriority__c ...
+	CustomerPriority__c string `json:"CustomerPriority__c"`
+	// BillingCity ...
+	//
+	// Details for the billing address of this account. Maximum size is 40 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	BillingCity string `json:"BillingCity"`
+	// ShippingState ...
+	//
+	// Details of the shipping address for this account. State maximum size is 80 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ShippingState string `json:"ShippingState"`
+	// Fax ...
+	//
+	// Fax number for the account.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	Fax string `json:"Fax"`
+	// ShippingPostalCode ...
+	//
+	// Details of the shipping address for this account. Postal code maximum size is 20 characters.
+	//
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ShippingPostalCode string `json:"ShippingPostalCode"`
+	// LastViewedDate ...
+	//
+	// The timestamp when the current user last viewed this record or list view. If this value is null, the user
+	// might have only accessed this record or list view (LastReferencedDate) but not viewed it.
+	//
+	//
+	// Properties:Filter, Nillable, Sort
+	LastViewedDate types.Datetime `json:"LastViewedDate"`
+	// SLA__c ...
+	SLA__c string `json:"SLA__c"`
+	// CreatedDate ...
+	CreatedDate types.Datetime `json:"CreatedDate"`
+	// LastModifiedDate ...
+	LastModifiedDate types.Datetime `json:"LastModifiedDate"`
+	// CleanStatus ...
+	//
+	// Indicates the record’s clean status as compared with Data.com. Values are: Matched, Different,
+	// Acknowledged, NotFound, Inactive, Pending, SelectMatch, or Skipped.Several values for CleanStatus display with
+	// different labels on the account record detail page. Matched displays as In Sync Acknowledged displays as Reviewed
+	// Pending displays as Not Compared
+	//
+	// Properties:Create, Filter, Group, Nillable, Restricted picklist,
+	// Sort, Update
+	CleanStatus string `json:"CleanStatus"`
+	// MasterRecordID ...
+	//
+	// If this object was deleted as the result of a merge, this field contains the ID of the record that was kept. If
+	// this object was deleted for any other reason, or has not been deleted, the value is null.
+	//
+	//
+	// Properties:Filter, Group, Nillable, Sort
+	MasterRecordID string `json:"MasterRecordId"`
+	// ParentID ...
+	//
+	// ID of the parent object, if any.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	ParentID string `json:"ParentId"`
+	// NumberOfEmployees ...
+	//
+	// Label is Employees. Number of employees working at the company represented by this account. Maximum size
+	// is eight digits.
+	//
+	// Properties:Create, Filter, Group, Nillable, Sort, Update
+	NumberOfEmployees int `json:"NumberOfEmployees"`
+	// Industry ...
+	//
+	// An industry associated with this account. Maximum size is 40 characters.
+	//
+	// Properties:Create,
+	// Filter, Group, Nillable, Sort, Update
+	Industry string `json:"Industry"`
+	// AnnualRevenue ...
+	//
+	// Estimated annual revenue of the account.
+	//
+	// Properties:Create, Filter, Nillable, Sort, Update
+	AnnualRevenue float64 `json:"AnnualRevenue"`
+	// CreatedByID ...
+	CreatedByID string `json:"CreatedById"`
+	// Description ...
+	//
+	// Text description of the account. Limited to 32,000 KB.
+	//
+	// Properties:Create, Nillable, Update
+	Description string `json:"Description"`
+	// Name ...
+	//
+	// Required. Label is Account Name. Name of the account. Maximum size is 255 characters. If the account has a
+	// record type of Person Account: This value is the concatenation of the FirstName, MiddleName, LastName, and
+	// Suffix of the associated person contact. You can't modify this value.
+	//
+	// Properties:Create, Filter,
+	// Group, Sort, Update
+	Name string `json:"Name"`
+	// SLAExpirationDate__c ...
+	SLAExpirationDate__c types.Date `json:"SLAExpirationDate__c"`
 }
