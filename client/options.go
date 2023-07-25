@@ -6,11 +6,13 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
+
 	"github.com/beeekind/go-salesforce-sdk/requests"
-	"github.com/dgrijalva/jwt-go"
 )
 
 // Option is a functional option used to configure the client object with
@@ -93,27 +95,51 @@ func WithPasswordBearer(clientID, clientSecret, username, password, securityToke
 // WithJWTBearer ...
 func WithJWTBearer(clientID, clientUsername, privateKeyPath string) Option {
 	return func(client *Client) error {
-		contents, err := ioutil.ReadFile(privateKeyPath)
-		if err != nil {
-			return err
+		var (
+			tokenString string
+			err         error
+
+			claims = jwt.StandardClaims{
+				ExpiresAt: time.Now().Add(time.Hour).Unix(),
+				Audience:  client.loginURL,
+				Issuer:    clientID,
+				Subject:   clientUsername,
+			}
+		)
+
+		// check if key exists
+		if _, err := os.Stat(privateKeyPath); err != nil {
+			// if unexpected error seen, return it
+			if !errors.Is(err, os.ErrNotExist) {
+				return err
+			}
+			// if file not found, zero out key path
+			privateKeyPath = ""
 		}
 
-		signature, err := jwt.ParseRSAPrivateKeyFromPEM(contents)
-		if err != nil {
-			return err
-		}
+		// if key path not defined, don't attempt signature process
+		if privateKeyPath == "" {
+			token := jwt.NewWithClaims(jwt.SigningMethodNone, claims)
+			tokenString, err = token.SigningString()
+			if err != nil {
+				return err
+			}
+		} else {
+			contents, err := ioutil.ReadFile(privateKeyPath)
+			if err != nil {
+				return err
+			}
 
-		claims := jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(time.Hour).Unix(),
-			Audience:  client.loginURL,
-			Issuer:    clientID,
-			Subject:   clientUsername,
-		}
+			signature, err := jwt.ParseRSAPrivateKeyFromPEM(contents)
+			if err != nil {
+				return err
+			}
 
-		token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-		tokenString, err := token.SignedString(signature)
-		if err != nil {
-			return err
+			token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+			tokenString, err = token.SignedString(signature)
+			if err != nil {
+				return err
+			}
 		}
 
 		var loginResponse *LoginResponse
