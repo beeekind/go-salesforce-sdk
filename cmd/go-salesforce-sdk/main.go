@@ -200,6 +200,8 @@ func generateCommand() {
 		panic("must provide at least one object name to parse")
 	}
 
+	seeds := make([]*codegen.Seed, 0)
+
 	// iterate through object names, generating code.
 	for _, objName := range conf.ObjectNames {
 		definer := &ObjectDefinition{
@@ -209,13 +211,15 @@ func generateCommand() {
 			PackageName:    conf.Package,
 			RecursionLevel: int(conf.Depth),
 		}
+
 		seed, err := codegen.From(definer)
-
 		panicIfErr(err)
 
-		err = codegen.Generate(seed)
-		panicIfErr(err)
+		seeds = append(seeds, seed)
 	}
+
+	err := codegen.Generate(seeds...)
+	panicIfErr(err)
 }
 
 func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error) {

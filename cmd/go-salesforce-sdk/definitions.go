@@ -2,7 +2,9 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
+	"strings"
 	"text/template"
 
 	"github.com/beeekind/go-salesforce-sdk/client"
@@ -56,8 +58,8 @@ func (o *ObjectDefinition) Options() ([]codegen.Option, error) {
 		codegen.WithPackageName(o.PackageName),
 		codegen.WithOutputDirectory(o.OutputPath),
 		codegen.WithTemplateMap(map[string]*template.Template{
-			"objects.go":   template.Must(template.New("objects.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.gohtml")),
-			"relations.go": template.Must(template.New("objects.relations.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.relations.gohtml")),
+			fmt.Sprintf("%s_objects.go", strings.ToLower(o.ObjectName)):   template.Must(template.New("objects.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.gohtml")),
+			fmt.Sprintf("%s_relations.go", strings.ToLower(o.ObjectName)): template.Must(template.New("objects.relations.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(gopath + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.relations.gohtml")),
 			// "api.go": template.Must(template.New("objects.api.gohtml").Funcs(codegen.DefaultFuncMap).ParseFiles(GOPATH + "/src/github.com/beeekind/go-salesforce-sdk/templates/objects.api.gohtml")),
 		}),
 		codegen.WithData(o),
