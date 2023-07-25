@@ -58,7 +58,7 @@ export SALESFORCE_SDK_SECURITY_TOKEN=...
 2. Generate the types you intend to use
 
 ```bash
-go-salesforce-sdk generate Lead ./ leads 0
+go-salesforce-sdk generate Lead --workdir=./ --package=leads --depth=0
 ```
 
 3. Use the SDK 
