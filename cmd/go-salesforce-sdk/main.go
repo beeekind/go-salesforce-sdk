@@ -202,23 +202,20 @@ func generateCommand() {
 
 	seeds := make([]*codegen.Seed, 0)
 
-	// iterate through object names, generating code.
-	for _, objName := range conf.ObjectNames {
-		definer := &ObjectDefinition{
-			Client:         salesforce.DefaultClient(),
-			ObjectName:     objName,
-			OutputPath:     conf.WorkDir,
-			PackageName:    conf.Package,
-			RecursionLevel: int(conf.Depth),
-		}
-
-		seed, err := codegen.From(definer)
-		panicIfErr(err)
-
-		seeds = append(seeds, seed)
+	definer := &ObjectDefinition{
+		Client:         salesforce.DefaultClient(),
+		ObjectNames:    conf.ObjectNames,
+		OutputPath:     conf.WorkDir,
+		PackageName:    conf.Package,
+		RecursionLevel: int(conf.Depth),
 	}
 
-	err := codegen.Generate(seeds...)
+	seed, err := codegen.From(definer)
+	panicIfErr(err)
+
+	seeds = append(seeds, seed)
+
+	err = codegen.Generate(seeds...)
 	panicIfErr(err)
 }
 
