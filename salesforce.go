@@ -30,16 +30,16 @@ var (
 	DefaultClientOpts = []client.Option{
 		client.WithLoginFailover(
 			client.WithPasswordBearer(
-				os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
-				os.Getenv("SALESFORCE_SDK_CLIENT_SECRET"),
-				os.Getenv("SALESFORCE_SDK_USERNAME"),
-				os.Getenv("SALESFORCE_SDK_PASSWORD"),
-				os.Getenv("SALESFORCE_SDK_SECURITY_TOKEN"),
+				os.Getenv(client.EnvSalesForceSDKClientID),
+				os.Getenv(client.EnvSalesForceSDKClientSecret),
+				os.Getenv(client.EnvSalesForceSDKUsername),
+				os.Getenv(client.EnvSalesForceSDKPassword),
+				os.Getenv(client.EnvSalesForceSDKSecurityToken),
 			),
 			client.WithJWTBearer(
-				os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
-				os.Getenv("SALESFORCE_SDK_USERNAME"),
-				"../private.pem",
+				os.Getenv(client.EnvSalesForceSDKClientID),
+				os.Getenv(client.EnvSalesForceSDKUsername),
+				client.EnvOrDefault(client.EnvSalesForceJWTPrivateKeyPath, "../private.pem"),
 			),
 		),
 		client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),

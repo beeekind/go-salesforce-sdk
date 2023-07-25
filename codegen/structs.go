@@ -11,14 +11,14 @@ import (
 // Structs allows us to define utility methods on a group of Struct objects
 type Structs []*Struct
 
-// Valid ... 
+// Valid ...
 func (s Structs) Valid() bool {
 	for _, elem := range s {
 		if ok := elem.Valid(); !ok {
-			return false 
+			return false
 		}
-	} 
-	return true 
+	}
+	return true
 }
 
 // RemoveRelations returns a new set of structs with all polymorphic structs
@@ -38,9 +38,11 @@ func (s Structs) RemoveRelations() Structs {
 
 // Dedupe ...
 func (s Structs) Dedupe(overrideNulls bool) (results Structs) {
+	return s
+
 	set := make(map[string]*Struct, len(s))
 	for _, entity := range s {
-		// not all Structs are equivalent and we want to preseve the one with the greatest number of properties
+		// not all Structs are equivalent and we want to preserve the one with the greatest number of properties
 		if previousObject, exists := set[entity.Name]; exists {
 			if len(previousObject.Properties) > len(entity.ParentName) {
 				if overrideNulls {
@@ -136,7 +138,7 @@ func (s Structs) Merge(s2 Structs, fn func(old, new Struct) Struct, includeDisti
 	for i := 0; i < len(s); i++ {
 		if _, exists := set[s[i].Name]; exists {
 			item := fn(*set[s[i].Name], *s[i])
-			set[s[i].Name] = &item 
+			set[s[i].Name] = &item
 			continue
 		}
 
@@ -153,7 +155,7 @@ func (s Structs) Merge(s2 Structs, fn func(old, new Struct) Struct, includeDisti
 		}
 
 		item := fn(*set[s2[i].Name], *s2[i])
-		set[s2[i].Name] = &item 
+		set[s2[i].Name] = &item
 	}
 
 	for _, v := range set {
@@ -183,13 +185,13 @@ func (props Properties) ConvertNillable() (results Properties) {
 }
 
 // Merge ...
-func (props Properties) Merge(p2 Properties, fn func(old, new Property) Property, includeDistinct bool)(final Properties) {
+func (props Properties) Merge(p2 Properties, fn func(old, new Property) Property, includeDistinct bool) (final Properties) {
 	set := make(map[string]*Property)
 
 	for _, prop := range props {
 		if _, exists := set[prop.Name]; exists {
 			item := fn(*set[prop.Name], *prop)
-			set[prop.Name] = &item 
+			set[prop.Name] = &item
 			continue
 		}
 
@@ -206,7 +208,7 @@ func (props Properties) Merge(p2 Properties, fn func(old, new Property) Property
 		}
 
 		item := fn(*set[prop.Name], *prop)
-		set[prop.Name] = &item 
+		set[prop.Name] = &item
 	}
 
 	for _, v := range set {
@@ -242,7 +244,7 @@ func MergeDocumentation(old, new Struct) Struct {
 		return old
 	}
 
-	final := old 
+	final := old
 
 	if new.DocumentationURL != "" {
 		final.DocumentationURL = new.DocumentationURL
@@ -270,7 +272,7 @@ func MergeDocumentation(old, new Struct) Struct {
 //    override existing values with a zero value "" or []string{}
 // 4) the documentation property is concatenated if the old.Documentation != ""
 func MergeProperty(old, new Property) Property {
-	final := old 
+	final := old
 
 	if new.Documentation != "" {
 		if old.Documentation == "" {
@@ -302,7 +304,7 @@ func MergeProperty(old, new Property) Property {
 // two Propeprty objects returning the remaining properties of the initial
 // Property argument unchanged
 func MergePropertyDocumentation(old, new Property) Property {
-	final := old 
+	final := old
 	if new.Documentation != "" {
 		if old.Documentation == "" {
 			final.Documentation = new.Documentation
@@ -316,7 +318,7 @@ func MergePropertyDocumentation(old, new Property) Property {
 
 // MergeOverrideNulls ...
 func MergeOverrideNulls(old, new Property) Property {
-	final := old 
+	final := old
 
 	if old.Type == "interface{}" || old.Type == "[]json.RawMessage" || old.Type == "[]interface{}" {
 		if new.Type != "interface{}" && new.Type != "[]json.RawMessage" && new.Type != "[]interface{}" {

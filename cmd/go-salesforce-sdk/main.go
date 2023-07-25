@@ -85,7 +85,7 @@ var (
 	fs = flag.NewFlagSet("go-salesforce-sdk", flag.ContinueOnError)
 
 	// runtime config, currently only used by "generate" command.
-	conf Config
+	conf = Config{}
 )
 
 func helpCommand() {
@@ -99,7 +99,18 @@ func helpCommand() {
 	fmt.Printf(helpTextF, buff.String())
 }
 
-func init() {
+func panicIfErr(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func main() {
+	var (
+		cmd       string
+		flagStart int
+	)
+
 	// override default help text printer
 	fs.Usage = helpCommand
 
@@ -129,31 +140,35 @@ func init() {
 		0,
 		"Depth of relationship level to generate models for.",
 	)
-}
 
-func panicIfErr(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
-
-func main() {
-	// parse flags
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		if errors.Is(err, flag.ErrHelp) {
-			return
-		}
-		panicIfErr(err)
-	}
-
-	// ensure at least 1 arg is provided
-	if fs.NArg() < 1 {
+	if len(os.Args) < 2 {
 		fmt.Println(invalidCommandText)
 		os.Exit(1)
 	}
 
+	for i, arg := range os.Args[1:] {
+		if i == 0 {
+			cmd = arg
+		} else if strings.HasPrefix(arg, "-") {
+			flagStart = i + 1
+			break
+		} else if str := strings.TrimSpace(arg); len(str) > 0 {
+			conf.ObjectNames = append(conf.ObjectNames, str)
+		}
+	}
+
+	if flagStart > 0 {
+		// parse flags
+		if err := fs.Parse(os.Args[flagStart:]); err != nil {
+			if errors.Is(err, flag.ErrHelp) {
+				return
+			}
+			panicIfErr(err)
+		}
+	}
+
 	// parse arg
-	switch fs.Arg(0) {
+	switch cmd {
 	case "help":
 		helpCommand()
 	case "ls":
@@ -185,16 +200,6 @@ func lsCommand() {
 }
 
 func generateCommand() {
-
-	// parse any / all object names
-	for i := 1; i < fs.NArg(); i++ {
-		str := strings.TrimSpace(fs.Arg(i))
-		if len(str) == 0 {
-			continue
-		}
-		conf.ObjectNames = append(conf.ObjectNames, str)
-	}
-
 	// ensure we have at least one object to fetch
 	if len(conf.ObjectNames) == 0 {
 		panic("must provide at least one object name to parse")
@@ -202,7 +207,7 @@ func generateCommand() {
 
 	seeds := make([]*codegen.Seed, 0)
 
-	definer := &ObjectDefinition{
+	definer := &ObjectsDefinition{
 		Client:         salesforce.DefaultClient(),
 		ObjectNames:    conf.ObjectNames,
 		OutputPath:     conf.WorkDir,
@@ -249,7 +254,7 @@ func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error
 		}
 	}
 
-	// retrieve the corresponsing tooling query descriptions for root object and its dependencies
+	// retrieve the corresponding tooling query descriptions for root object and its dependencies
 	if err := description(structs[0]); err != nil {
 		return nil, err
 	}

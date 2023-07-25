@@ -14,8 +14,8 @@ import (
 
 var gopath = os.Getenv("GOPATH")
 
-// ObjectDefinition ...
-type ObjectDefinition struct {
+// ObjectsDefinition ...
+type ObjectsDefinition struct {
 	Client         *client.Client
 	Objects        []*codegen.Struct
 	ObjectNames    []string
@@ -26,9 +26,9 @@ type ObjectDefinition struct {
 }
 
 // Options ...
-func (o *ObjectDefinition) Options() ([]codegen.Option, error) {
+func (o *ObjectsDefinition) Options() ([]codegen.Option, error) {
 	if len(o.ObjectNames) == 0 {
-		return nil, errors.New("empty ObjectDefinition.ObjectsNames")
+		return nil, errors.New("empty ObjectsDefinition.ObjectsNames")
 	}
 
 	if o.OutputPath == "" {
@@ -52,18 +52,23 @@ func (o *ObjectDefinition) Options() ([]codegen.Option, error) {
 
 	seenObjs := make(map[string]struct{})
 
+outer:
 	for _, entity := range entities {
 		for _, on := range o.ObjectNames {
-			if _, ok := seenObjs[on]; ok {
+			if on != entity.Name {
 				continue
 			}
-			seenObjs[on] = struct{}{}
-			if on == entity.Name {
-				o.Objects = append(o.Objects, entity)
-			} else {
-				o.Relations = append(o.Relations, entity)
+
+			if _, ok := seenObjs[on]; ok {
+				continue outer
 			}
+
+			o.Objects = append(o.Objects, entity)
+			continue outer
 		}
+
+		seenObjs[entity.Name] = struct{}{}
+		o.Relations = append(o.Relations, entity)
 	}
 
 	return []codegen.Option{

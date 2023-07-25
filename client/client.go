@@ -16,6 +16,22 @@ import (
 	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
+const (
+	EnvSalesForceSDKInstanceURL    = "SALESFORCE_SDK_INSTANCE_URL"
+	EnvSalesForceSDKLoginURL       = "SALESFORCE_SDK_LOGIN_URL"
+	EnvSalesForceSDKPathPrefix     = "SALESFORCE_SDK_PATH_PREFIX"
+	EnvSalesForceSDKClientID       = "SALESFORCE_SDK_CLIENT_ID"
+	EnvSalesForceSDKClientSecret   = "SALESFORCE_SDK_CLIENT_SECRET"
+	EnvSalesForceSDKUsername       = "SALESFORCE_SDK_USERNAME"
+	EnvSalesForceSDKPassword       = "SALESFORCE_SDK_PASSWORD"
+	EnvSalesForceSDKSecurityToken  = "SALESFORCE_SDK_SECURITY_TOKEN"
+	EnvSalesForceJWTPrivateKeyPath = "SALESFORCE_SDK_JWT_PRIVATE_KEY_PATH"
+
+	DefaultLoginURL = "https://login.salesforce.com/services/oauth2/token"
+
+	DefaultPathPrefix = "services/data"
+)
+
 // Client ...
 type Client struct {
 	// mu protects access to reference fields in this struct like client, pool, and limiter
@@ -42,11 +58,15 @@ type APIVersion struct {
 	Version string `json:"version"`
 }
 
-const defaultPathPrefix = "services/data"
-
 var defaultOptions = []Option{
-	WithLoginURL("https://login.salesforce.com/services/oauth2/token"),
-	WithPathPrefix("services/data"),
+	WithFirstSuccess(
+		WithLoginURLFromEnv(),
+		WithLoginURL(DefaultLoginURL),
+	),
+	WithFirstSuccess(
+		WithPathPrefixFromEnv(),
+		WithPathPrefix(DefaultPathPrefix),
+	),
 	WithDailyAPIMax(15000),
 	WithUsage(0.40),
 }
@@ -207,16 +227,16 @@ func (c *Client) QueryMore(builder soql.Builder, dst interface{}, includeSoftDel
 		return err
 	}
 
-	// 4) execute all subsequent paginated queries 
+	// 4) execute all subsequent paginated queries
 	payloads, err := c.querySubsequentURLs(URLs...)
 	if err != nil {
-		return err 
+		return err
 	}
 
-	// 5) build them into a single []byte which can be unmarshalled 
+	// 5) build them into a single []byte which can be unmarshalled
 	results := requests.MergeJSONArrays(append(initialPayloads, payloads...)...)
 
-	// 6) unmarshal them 
+	// 6) unmarshal them
 	return json.Unmarshal(results, dst)
 }
 
@@ -240,7 +260,6 @@ func (c *Client) querySubsequentURLs(paginatedURLs ...string) (payloads [][]byte
 	}
 	close(input)
 
-
 	var wg sync.WaitGroup
 	wg.Add(len(paginatedURLs))
 
@@ -249,7 +268,7 @@ func (c *Client) querySubsequentURLs(paginatedURLs ...string) (payloads [][]byte
 			for url := range input {
 				contents, err := requests.Sender(client).URL(url).JSON(nil)
 				output <- &result{contents, err}
-				wg.Done() 
+				wg.Done()
 			}
 
 		}(&wg, c, input, output)
@@ -260,13 +279,13 @@ func (c *Client) querySubsequentURLs(paginatedURLs ...string) (payloads [][]byte
 
 	for result := range output {
 		if result.Err != nil {
-			return nil, err 
+			return nil, err
 		}
 
 		payloads = append(payloads, result.Body)
 	}
 
-	return payloads, nil 
+	return payloads, nil
 }
 
 // URL parses a url segment into a fully qualified Salesforce API request using client.instanceURL,
