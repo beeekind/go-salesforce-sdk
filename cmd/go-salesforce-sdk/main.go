@@ -240,9 +240,12 @@ func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error
 		})
 	}
 
-	// retrieve the corresponding reference documentation for root object and its dependencies
-	if err := reference(structs[0]); err != nil {
-		return nil, err
+	// if configured to use references, retrieve the corresponding reference documentation for root object and
+	// its dependencies
+	if conf.UseReferenceDocs {
+		if err := reference(structs[0]); err != nil {
+			return nil, err
+		}
 	}
 
 	// retrieve the corresponsing tooling query descriptions for root object and its dependencies
@@ -250,7 +253,6 @@ func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error
 		return nil, err
 	}
 
-	//
 	if recursionLevel == 0 {
 		return structs, nil
 	}
