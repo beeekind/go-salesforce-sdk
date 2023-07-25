@@ -8,4 +8,6 @@ import (
     {{- end}}
 )
 
-{{ .Data.Object.String }}
+{{ range .Data.Objects }}
+{{ .String }}
+{{ end }}

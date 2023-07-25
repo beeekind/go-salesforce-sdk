@@ -7,7 +7,11 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
+
+	"github.com/beeekind/ratelimit"
+	"github.com/beeekind/ratelimit/memory"
 
 	"github.com/beeekind/go-salesforce-sdk/client"
 	"github.com/beeekind/go-salesforce-sdk/codegen"
@@ -16,30 +20,47 @@ import (
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/beeekind/go-salesforce-sdk/types"
-	"github.com/beeekind/ratelimit"
-	"github.com/beeekind/ratelimit/memory"
 )
 
 // "If the data can't be found here, check out what's behind API endpoint number 5"
 
-// DefaultClient ...
-var DefaultClient = client.Must(
-	client.WithLoginFailover(
-		client.WithPasswordBearer(
-			os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
-			os.Getenv("SALESFORCE_SDK_CLIENT_SECRET"),
-			os.Getenv("SALESFORCE_SDK_USERNAME"),
-			os.Getenv("SALESFORCE_SDK_PASSWORD"),
-			os.Getenv("SALESFORCE_SDK_SECURITY_TOKEN"),
+var (
+	// DefaultClientOpts is the list of options that are applied to every client by default.  Override this if you
+	// need a different set of options.
+	DefaultClientOpts = []client.Option{
+		client.WithLoginFailover(
+			client.WithPasswordBearer(
+				os.Getenv(client.EnvSalesForceSDKClientID),
+				os.Getenv(client.EnvSalesForceSDKClientSecret),
+				os.Getenv(client.EnvSalesForceSDKUsername),
+				os.Getenv(client.EnvSalesForceSDKPassword),
+				os.Getenv(client.EnvSalesForceSDKSecurityToken),
+			),
+			client.WithJWTBearer(
+				os.Getenv(client.EnvSalesForceSDKClientID),
+				os.Getenv(client.EnvSalesForceSDKUsername),
+				client.EnvOrDefault(client.EnvSalesForceJWTPrivateKeyPath, "../private.pem"),
+			),
 		),
-		client.WithJWTBearer(
-			os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
-			os.Getenv("SALESFORCE_SDK_USERNAME"),
-			"../private.pem",
-		),
-	),
-	client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),
+		client.WithLimiter(ratelimit.New(5, time.Second, 5, memory.New())),
+	}
+
+	defaultClient     *client.Client
+	defaultClientOnce sync.Once
 )
+
+// initClient is called by the oncer to create the default client on demand.
+func initClient() {
+	defaultClient = client.Must(DefaultClientOpts...)
+}
+
+// DefaultClient returns a client instance with the default configuration specified by DefaultClientOpts.
+//
+// This client is initialized exactly once upon first being called.
+func DefaultClient() *client.Client {
+	defaultClientOnce.Do(initClient)
+	return defaultClient
+}
 
 /**
 [{"message":"The users password has expired, you must call SetPassword before attempting any other API operations","errorCode":"INVALID_OPERATION_WITH_EXPIRED_PASSWORD"}] SELECT QualifiedApiName, Description FROM EntityDefinition WHERE QualifiedApiName IN ('Account')
@@ -50,13 +71,13 @@ var DefaultClient = client.Must(
 // This method is used during authentication so that we may default to the latest
 // REST API endpoint.
 func Versions() ([]*client.APIVersion, error) {
-	return DefaultClient.APIVersions()
+	return DefaultClient().APIVersions()
 }
 
 // Services are api endpoints for RESTful operations within the Salesforce API
 func Services() (services map[string]string, err error) {
 	_, err = requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL("").
 		JSON(&services)
 
@@ -76,7 +97,7 @@ func Services() (services map[string]string, err error) {
 // Types returns a golang type definition(s) for the JSON response of an endpoint
 func Types(structName string, endpoint string) (codegen.Structs, error) {
 	response, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(endpoint).
 		Response()
 
@@ -109,7 +130,7 @@ func Types(structName string, endpoint string) (codegen.Structs, error) {
 // SObjects returns the result of a request to the /sobjects endpoint
 func SObjects() (results *metadata.Sobjects, err error) {
 	_, err = requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL("sobjects").
 		JSON(&results)
 
@@ -123,7 +144,7 @@ func SObjects() (results *metadata.Sobjects, err error) {
 // Describe returns the description of a given Salesforce Object
 func Describe(objectName string) (describe *metadata.Describe, err error) {
 	_, err = requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("%s/%s/%s", "sobjects", objectName, "describe")).
 		JSON(&describe)
 
@@ -141,7 +162,7 @@ func Describe(objectName string) (describe *metadata.Describe, err error) {
 // DownloadFile returns the given file via its ContentVersion ID
 func DownloadFile(contentVersionID string) ([]byte, error) {
 	response, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("sobjects/ContentVersion/%s/VersionData", contentVersionID)).
 		Method(http.MethodGet).
 		Response()
@@ -156,7 +177,7 @@ func DownloadFile(contentVersionID string) ([]byte, error) {
 // Attachment returns the given Attachment by ID
 func Attachment(ID string) ([]byte, error) {
 	response, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("sobjects/Attachment/%s/body", ID)).
 		Method(http.MethodGet).
 		Response()
@@ -171,7 +192,7 @@ func Attachment(ID string) ([]byte, error) {
 // Document returns the given Document by ID
 func Document(req requests.Builder, ID string) ([]byte, error) {
 	response, err := req.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("sobjects/Document/%s/body", ID)).
 		Method(http.MethodGet).
 		Response()
@@ -187,7 +208,7 @@ func Document(req requests.Builder, ID string) ([]byte, error) {
 func Count(objectName string) (int, error) {
 	var response types.QueryResponse
 	contents, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL("query").
 		SQLizer(soql.Select("count()").From(objectName)).
 		JSON(&response)
@@ -209,7 +230,7 @@ func Count(objectName string) (int, error) {
 // the expected query records.
 func Find(query string, dst interface{}) error {
 	return requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL("query").
 		QueryMore(soql.String(query), dst, false)
 }
@@ -221,7 +242,7 @@ func Find(query string, dst interface{}) error {
 // the expected query records.
 func FindAll(query string, dst interface{}) error {
 	return requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL("queryAll").
 		QueryMore(soql.String(query), dst, true)
 }
@@ -233,7 +254,7 @@ func FindAll(query string, dst interface{}) error {
 func FindByID(objectName string, objectID string, fields []string, dst interface{}) error {
 	var response types.QueryParts
 	_, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(metadata.QueryEndpoint).
 		SQLizer(
 			soql.Select(fields...).
@@ -265,7 +286,7 @@ func FindByID(objectName string, objectID string, fields []string, dst interface
 func Create(objectName string, fields map[string]interface{}) (ID string, err error) {
 	var response composite.Output
 	contents, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("%s/%s", metadata.SobjectsEndpoint, objectName)).
 		Method(http.MethodPost).
 		Header("Content-Type", "application/json").
@@ -296,7 +317,7 @@ func UpdateByID(objectName string, ID string, fields map[string]interface{}) err
 	var result composite.Error
 
 	_, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("%s/%s/%s", metadata.SobjectsEndpoint, objectName, ID)).
 		Method(http.MethodPatch).
 		Header("Content-Type", "application/json").
@@ -314,7 +335,7 @@ func UpdateByID(objectName string, ID string, fields map[string]interface{}) err
 func DeleteByID(objectName string, ID string) error {
 	var result composite.Error
 	_, err := requests.
-		Sender(DefaultClient).
+		Sender(DefaultClient()).
 		URL(fmt.Sprintf("%s/%s/%s", metadata.SobjectsEndpoint, objectName, ID)).
 		Method(http.MethodDelete).
 		JSON(&result)

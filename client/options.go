@@ -13,6 +13,13 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+func EnvOrDefault(envName, def string) string {
+	if v, ok := os.LookupEnv(envName); ok {
+		return v
+	}
+	return def
+}
+
 // Option is a functional option used to configure the client object with
 // a clearly documented and well defaulted approach: https://dave.cheney.net/2014/10/17/functional-options-for-friendly-apis
 //
@@ -51,8 +58,7 @@ func (e *LoginError) Error() string {
 	return fmt.Sprintf("%s: %s", e.ErrorMessage, e.ErrorDescription)
 }
 
-// WithLoginFailover ...
-func WithLoginFailover(options ...Option) Option {
+func WithFirstSuccess(options ...Option) Option {
 	return func(client *Client) error {
 		var err error
 		for _, opt := range options {
@@ -63,6 +69,12 @@ func WithLoginFailover(options ...Option) Option {
 		}
 		return err
 	}
+}
+
+// WithLoginFailover ...
+func WithLoginFailover(options ...Option) Option {
+	return WithFirstSuccess(options...)
+
 }
 
 // WithPasswordBearer ...
@@ -192,6 +204,26 @@ func WithInstanceURL(instanceURL string) Option {
 	}
 }
 
+func WithInstanceURLFromEnv() Option {
+	return func(client *Client) error {
+		if v, ok := os.LookupEnv(EnvSalesForceSDKInstanceURL); ok {
+			client.instanceURL = v
+			return nil
+		}
+		return fmt.Errorf("environment variable %q is not defined", EnvSalesForceSDKInstanceURL)
+	}
+}
+
+func WithLoginURLFromEnv() Option {
+	return func(client *Client) error {
+		if v, ok := os.LookupEnv(EnvSalesForceSDKLoginURL); ok {
+			client.loginURL = v
+			return nil
+		}
+		return fmt.Errorf("environment variable %q is not defined", EnvSalesForceSDKLoginURL)
+	}
+}
+
 // WithHTTPClient sets the client used to access the Salesforce REST API. This client should be configured
 // similar to httppool/authhttp.go where each request includes the proper authorization headers. See
 // WithLoginBearer for an example of how to property configure the http.Client through authhttp
@@ -245,6 +277,12 @@ func WithDailyAPIMax(maxRequests24hr int64) Option {
 	}
 }
 
+func setPathPrefix(client *Client, urlTemplatePrefix string) {
+	urlTemplatePrefix = strings.TrimPrefix(urlTemplatePrefix, "/")
+	urlTemplatePrefix = strings.TrimSuffix(urlTemplatePrefix, "/")
+	client.apiPathPrefix = urlTemplatePrefix
+}
+
 // WithPathPrefix is the prefix used to form a a fully qualified URL for retrieving data from
 // the Salesforce REST API. By convention this will be /services/data but in the case that future
 // API versions choose a different format we're leaving this as a dynamically configurable option.
@@ -255,10 +293,18 @@ func WithDailyAPIMax(maxRequests24hr int64) Option {
 // Default: "services/data"
 func WithPathPrefix(urlTemplatePrefix string) Option {
 	return func(client *Client) error {
-		urlTemplatePrefix = strings.TrimPrefix(urlTemplatePrefix, "/")
-		urlTemplatePrefix = strings.TrimSuffix(urlTemplatePrefix, "/")
-		client.apiPathPrefix = urlTemplatePrefix
+		setPathPrefix(client, urlTemplatePrefix)
 		return nil
+	}
+}
+
+func WithPathPrefixFromEnv() Option {
+	return func(client *Client) error {
+		if v, ok := os.LookupEnv(EnvSalesForceSDKPathPrefix); ok {
+			setPathPrefix(client, v)
+			return nil
+		}
+		return fmt.Errorf("environment variable %q is not defined", EnvSalesForceSDKPathPrefix)
 	}
 }
 

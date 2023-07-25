@@ -14,13 +14,13 @@ var structTemplate = template.Must(template.New("").Funcs(DefaultFuncMap).Parse(
 // {{.Name}} ... {{ if .DocumentationURL }}
 // {{.DocumentationURL}} {{end}}{{if .Documentation}}
 //
-// {{.Documentation}}{{end}}
+{{.DocComment}}{{end}}
 type {{.Name}} struct {
 	{{- range .Properties }}
-	// {{.Name}} ... {{ if .Documentation }}
+	// {{.StructFieldName}} ... {{ if .Documentation }}
 	//
-	// {{.Documentation}}{{- end}}
-	{{.Name}} {{.Type}} {{.Tag}}
+	{{.DocComment}}{{- end}}
+	{{.StructFieldName}} {{.Type}} {{.Tag}}
 	{{- end}}
 }`))
 
@@ -30,13 +30,13 @@ var embeddedStructTemplate = template.Must(template.New("").Funcs(DefaultFuncMap
 // {{.DocumentationURL}}
 //{{end}}{{if .Documentation}}
 //
-// {{.Documentation}}{{end}}
+// {{.DocComment}}{{end}}
 type {{.Name}} struct {
 	{{- range .Properties }}
-	// {{.Name}} ... {{ if .Documentation }}
+	// {{.StructFieldName}} ... {{ if .Documentation }}
 	//
-	// {{.Documentation}}{{- end}}
-	{{.Name}} 
+	{{.DocComment}}{{- end}}
+	{{.StructFieldName}} 
 	{{- end}}
 }`))
 
@@ -86,52 +86,65 @@ func (s *Struct) String() (string, error) {
 	return buffer.String(), nil
 }
 
-// Valid ... 
+// Valid ...
 func (s *Struct) Valid() bool {
 	if s.Name == "" {
-		return false 
+		return false
 	}
 
 	for _, d := range s.Dependencies {
 		if d == "" {
-			return false 
+			return false
 		}
 	}
 
 	for _, p := range s.Properties {
 		if p.Name == "" {
-			return false 
+			return false
 		}
 
 		if p.Type == "" && !p.IsEmbedded {
-			return false 
+			return false
 		}
 	}
 
-	return true 
+	return true
 }
 
 // RemoveRelations returns a new copy of Struct with properties representing
-// parent or child relations removed 
+// parent or child relations removed
 func (s *Struct) RemoveRelations() *Struct {
-	var nonRelations []*Property 
+	var nonRelations []*Property
 
 	for _, property := range s.Properties {
 		if property.IsRelation() {
-			continue 
+			continue
 		}
 
 		nonRelations = append(nonRelations, property)
 	}
 
 	return &Struct{
-		ParentName: s.ParentName,
-		Name: s.Name, 
+		ParentName:       s.ParentName,
+		Name:             s.Name,
 		DocumentationURL: s.DocumentationURL,
-		Documentation: s.Documentation,
-		Properties: nonRelations,
-		Dependencies: nil,
+		Documentation:    s.Documentation,
+		Properties:       nonRelations,
+		Dependencies:     nil,
 	}
+}
+
+func (s *Struct) DocComment() string {
+	ss := strings.Split(strings.ReplaceAll(s.Documentation, "\r\n", "\n"), "\n")
+	out := ""
+	for i, s := range ss {
+		if i > 0 {
+			out = fmt.Sprintf("%s\n// %s", out, s)
+		} else {
+			out = fmt.Sprintf("%s// %s", out, s)
+		}
+	}
+	return out
 }
 
 // Property represents a Field of a struct
@@ -155,8 +168,8 @@ type Property struct {
 	//
 	// This is used to provide response types for polymorphic foreign keys
 	IsEmbedded bool
-	// IsNillable ... 
-	IsNillable bool 
+	// IsNillable ...
+	IsNillable bool
 }
 
 // NewProperty ...
@@ -181,7 +194,7 @@ func NewProperty(parent string, name string, dataType string, documentation stri
 		return prop, err
 	}
 
-	prop.Documentation = enforceLineLimit(stripNewLinesAndTabs(documentation), 90)
+	prop.Documentation = documentation //enforceLineLimit(documentation, 90)
 	prop.Tag = Tag{tagName: tagValues}
 	return prop, nil
 }
@@ -214,6 +227,24 @@ func NewChildProperty(parentName string, relationshipName string) (Property, err
 // IsRelation returns true if this property represents a parent or child relationship
 func (p *Property) IsRelation() bool {
 	return p.ParentName != "" || p.IsEmbedded
+}
+
+func (p *Property) StructFieldName() string {
+	const f = "%s%s"
+	return fmt.Sprintf(f, strings.ToUpper(string(p.Name[0])), p.Name[1:])
+}
+
+func (p *Property) DocComment() string {
+	ss := strings.Split(strings.ReplaceAll(p.Documentation, "\r\n", "\n"), "\n")
+	out := ""
+	for i, s := range ss {
+		if i > 0 {
+			out = fmt.Sprintf("%s\n// %s", out, s)
+		} else {
+			out = fmt.Sprintf("%s// %s", out, s)
+		}
+	}
+	return out
 }
 
 // Tag represents a set of struct property tags

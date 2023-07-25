@@ -1,9 +1,11 @@
 package main
 
 import (
+	"bytes"
+	"errors"
+	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/beeekind/go-salesforce-sdk"
@@ -14,11 +16,12 @@ import (
 	"github.com/beeekind/go-salesforce-sdk/types"
 )
 
-var objectDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
-var toolingDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_%s.htm"
-var invalidCommandText = "expected command 'ls' or 'generate {objectName}' run command with --help for more info"
+const (
+	objectDocumentationTmpl  = "https://developer.salesforce.com/docs/atlas.en-us.object_reference.meta/object_reference/sforce_api_objects_%s.htm"
+	toolingDocumentationTmpl = "https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_%s.htm"
+	invalidCommandText       = "expected command 'ls' or 'generate', run command with --help for more info"
 
-var helpText = `
+	helpTextF = `
 Welcome to the go-salesforce-sdk CLI!
 
 This CLI depends on the default authentication methods used by Salesforce.DefaultClient. 
@@ -49,7 +52,10 @@ ls
 list salesforce objects for your org. Takes no arguments.
 
 ---
-generate {objectName|string} {outputPath|string} {packageName|string} {relationshipLevel|int}
+generate {objectName|strings} --workdir={outputPath|string} --package={packageName|string} --depth={relationshipLevel|int}
+
+[Flags]:
+%s
 ---
 
 generate type definitions for the given salesforce object i.e. {Lead, User, Account}. 
@@ -58,10 +64,40 @@ are so deeply connected we suggest 0 or 1 for this value.
 
 Examples:
 
-go-salesforce-sdk ls 
-go-salesforce-sdk generate Lead ./ leads 0
-go-salesforce-sdk generate Account /path/to/desired/output accounts 1
+go-salesforce-sdk ls
+go-salesforce-sdk generate 
+go-salesforce-sdk generate Lead --workdir=./ --package=leads --depth=0
+go-salesforce-sdk generate Account --workdir=/path/to/desired/output --package=accounts --depth=1
 `
+)
+
+type Config struct {
+	UseReferenceDocs bool
+	WorkDir          string
+	Package          string
+	Depth            uint
+
+	ObjectNames []string
+}
+
+var (
+	// init flagset for this cmd
+	fs = flag.NewFlagSet("go-salesforce-sdk", flag.ContinueOnError)
+
+	// runtime config, currently only used by "generate" command.
+	conf = Config{}
+)
+
+func helpCommand() {
+	// create temp buffer
+	buff := bytes.NewBuffer(nil)
+	// set output to our buffer
+	fs.SetOutput(buff)
+	// print defaults to buffer
+	fs.PrintDefaults()
+	// print help text with output from buffer
+	fmt.Printf(helpTextF, buff.String())
+}
 
 func panicIfErr(err error) {
 	if err != nil {
@@ -70,25 +106,79 @@ func panicIfErr(err error) {
 }
 
 func main() {
+	var (
+		cmd       string
+		flagStart int
+	)
+
+	// override default help text printer
+	fs.Usage = helpCommand
+
+	// define flag vars
+
+	fs.BoolVar(
+		&conf.UseReferenceDocs,
+		"use-reference-docs",
+		false,
+		"If provided, attempts to further annotate each generated model from the reference documentation HTML.",
+	)
+	fs.StringVar(
+		&conf.WorkDir,
+		"workdir",
+		".",
+		"Root working directory.  Package directories will be created under this path.",
+	)
+	fs.StringVar(
+		&conf.Package,
+		"package",
+		"sfmodels",
+		"Name of package to define generated models within.  Directory of same name will be created under --workdir.",
+	)
+	fs.UintVar(
+		&conf.Depth,
+		"depth",
+		0,
+		"Depth of relationship level to generate models for.",
+	)
+
 	if len(os.Args) < 2 {
 		fmt.Println(invalidCommandText)
+		os.Exit(1)
 	}
 
-	for _, arg := range os.Args {
-		switch arg {
-		case "help", "--help", "-help":
-			helpCommand()
-			return
+	for i, arg := range os.Args[1:] {
+		if i == 0 {
+			cmd = arg
+		} else if strings.HasPrefix(arg, "-") {
+			flagStart = i + 1
+			break
+		} else if str := strings.TrimSpace(arg); len(str) > 0 {
+			conf.ObjectNames = append(conf.ObjectNames, str)
 		}
 	}
 
-	switch os.Args[1] {
+	if flagStart > 0 {
+		// parse flags
+		if err := fs.Parse(os.Args[flagStart:]); err != nil {
+			if errors.Is(err, flag.ErrHelp) {
+				return
+			}
+			panicIfErr(err)
+		}
+	}
+
+	// parse arg
+	switch cmd {
+	case "help":
+		helpCommand()
 	case "ls":
 		lsCommand()
 	case "generate":
 		generateCommand()
+
 	default:
 		fmt.Println(invalidCommandText)
+		os.Exit(1)
 	}
 }
 
@@ -110,37 +200,28 @@ func lsCommand() {
 }
 
 func generateCommand() {
-	if len(os.Args) < 6 {
-		fmt.Printf("Too few arguments to 'generate' command expected 6 got %v - use --help for more", len(os.Args))
-		return
+	// ensure we have at least one object to fetch
+	if len(conf.ObjectNames) == 0 {
+		panic("must provide at least one object name to parse")
 	}
 
-	objectName := os.Args[2]
-	outputPath := os.Args[3]
-	outputPackageName := os.Args[4]
-	recursionLevel, err := strconv.Atoi(os.Args[5])
-	if err != nil {
-		fmt.Println("Generate expects its final argument to be an integer indicating how many levels of relations should be generated")
-		return
+	seeds := make([]*codegen.Seed, 0)
+
+	definer := &ObjectsDefinition{
+		Client:         salesforce.DefaultClient(),
+		ObjectNames:    conf.ObjectNames,
+		OutputPath:     conf.WorkDir,
+		PackageName:    conf.Package,
+		RecursionLevel: int(conf.Depth),
 	}
 
-	definer := &ObjectDefinition{
-		Client:         salesforce.DefaultClient,
-		ObjectName:     objectName,
-		OutputPath:     outputPath,
-		PackageName:    outputPackageName,
-		RecursionLevel: recursionLevel,
-	}
 	seed, err := codegen.From(definer)
-
 	panicIfErr(err)
 
-	err = codegen.Generate(seed)
-	panicIfErr(err)
-}
+	seeds = append(seeds, seed)
 
-func helpCommand() {
-	fmt.Println(helpText)
+	err = codegen.Generate(seeds...)
+	panicIfErr(err)
 }
 
 func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error) {
@@ -165,17 +246,19 @@ func defineEntity(objectName string, recursionLevel int) (codegen.Structs, error
 		})
 	}
 
-	// retrieve the corresponding reference documentation for root object and its dependencies
-	if err := reference(structs[0]); err != nil {
-		return nil, err
+	// if configured to use references, retrieve the corresponding reference documentation for root object and
+	// its dependencies
+	if conf.UseReferenceDocs {
+		if err := reference(structs[0]); err != nil {
+			return nil, err
+		}
 	}
 
-	// retrieve the corresponsing tooling query descriptions for root object and its dependencies
+	// retrieve the corresponding tooling query descriptions for root object and its dependencies
 	if err := description(structs[0]); err != nil {
 		return nil, err
 	}
 
-	//
 	if recursionLevel == 0 {
 		return structs, nil
 	}
@@ -201,7 +284,7 @@ func describe(objectName string, ignoreRelations bool) (codegen.Structs, error) 
 	var describe metadata.Describe
 	uri := fmt.Sprintf("%s/%s/%s", "sobjects", objectName, "describe")
 	_, err := requests.
-		Sender(salesforce.DefaultClient).
+		Sender(salesforce.DefaultClient()).
 		URL(uri).
 		JSON(&describe)
 
@@ -256,7 +339,7 @@ func description(entity *codegen.Struct) error {
 
 	var result entities
 	_, err := requests.
-		Sender(salesforce.DefaultClient).
+		Sender(salesforce.DefaultClient()).
 		URL(fmt.Sprintf("%s/%s", "tooling", "query")).
 		SQLizer(builder).
 		JSON(&result)

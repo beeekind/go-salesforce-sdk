@@ -4,19 +4,20 @@ import (
 	"os"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/beeekind/go-salesforce-sdk"
-	"github.com/beeekind/go-salesforce-sdk/examples/leads"
 	"github.com/beeekind/go-salesforce-sdk/client"
+	"github.com/beeekind/go-salesforce-sdk/examples/leads"
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/beeekind/go-salesforce-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
 var c = client.Must()
 
 func TestNew(t *testing.T) {
-	client, err := client.New(client.WithLoginFailover(
+	cl, err := client.New(client.WithLoginFailover(
 		client.WithPasswordBearer(
 			os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
 			os.Getenv("SALESFORCE_SDK_CLIENT_SECRET"),
@@ -32,19 +33,19 @@ func TestNew(t *testing.T) {
 	))
 
 	require.Nil(t, err)
-	require.NotNil(t, client)
+	require.NotNil(t, cl)
 }
 
 func TestNewWithJWT(t *testing.T) {
-	t.Skip() 
-	client, err := client.New(client.WithJWTBearer(
+	t.Skip()
+	cl, err := client.New(client.WithJWTBearer(
 		os.Getenv("SALESFORCE_SDK_CLIENT_ID"),
 		os.Getenv("SALESFORCE_SDK_USERNAME"),
 		"../private.pem",
 	))
 
 	require.Nil(t, err)
-	require.NotNil(t, client)
+	require.NotNil(t, cl)
 }
 
 func TestQueryMore(t *testing.T) {
@@ -55,7 +56,7 @@ func TestQueryMore(t *testing.T) {
 
 	var results response
 	_, err := requests.
-		Sender(salesforce.DefaultClient).
+		Sender(salesforce.DefaultClient()).
 		URL("query").
 		SQLizer(soql.Select("Id", "Name").From("Lead")).
 		JSON(&results)

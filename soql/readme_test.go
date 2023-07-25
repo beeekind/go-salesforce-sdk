@@ -4,13 +4,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/beeekind/go-salesforce-sdk"
 	"github.com/beeekind/go-salesforce-sdk/examples/entitydefinitions"
 	"github.com/beeekind/go-salesforce-sdk/examples/leads"
 	"github.com/beeekind/go-salesforce-sdk/requests"
 	"github.com/beeekind/go-salesforce-sdk/soql"
 	"github.com/beeekind/go-salesforce-sdk/types"
-	"github.com/stretchr/testify/require"
 )
 
 func TestReadMeExamples(t *testing.T) {
@@ -34,7 +35,7 @@ func TestReadMeExamples(t *testing.T) {
 
 	var response entityQuery
 	_, err = requests.
-		Sender(salesforce.DefaultClient).
+		Sender(salesforce.DefaultClient()).
 		URL("tooling/query").
 		SQLizer(soql.
 			Select("QualifiedApiName").
@@ -52,7 +53,7 @@ func TestReadMeExamples(t *testing.T) {
 	var response2 leadQuery
 	subquery := soql.Select("Id").From("Attachments")
 	_, err = requests.
-		Sender(salesforce.DefaultClient).
+		Sender(salesforce.DefaultClient()).
 		URL("query").
 		SQLizer(
 			soql.
