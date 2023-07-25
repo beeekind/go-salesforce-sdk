@@ -38,8 +38,6 @@ func (s Structs) RemoveRelations() Structs {
 
 // Dedupe ...
 func (s Structs) Dedupe(overrideNulls bool) (results Structs) {
-	return s
-
 	set := make(map[string]*Struct, len(s))
 	for _, entity := range s {
 		// not all Structs are equivalent and we want to preserve the one with the greatest number of properties
@@ -301,7 +299,7 @@ func MergeProperty(old, new Property) Property {
 }
 
 // MergePropertyDocumentation merges only the Documentation field of
-// two Propeprty objects returning the remaining properties of the initial
+// two Property objects returning the remaining properties of the initial
 // Property argument unchanged
 func MergePropertyDocumentation(old, new Property) Property {
 	final := old
